@@ -1,52 +1,32 @@
-FROM ubuntu:18.04
-# Add i386 support for support for Pin
-RUN dpkg --add-architecture i386
-RUN apt-get update && apt-get install -y \
-    python \
-    screen \
-    tmux \
-    binutils \
-    libc6:i386 \
-    libncurses5:i386 \
-    libstdc++6:i386 \
- && rm -rf /var/lib/apt/lists/*
-# For building Sniper
-RUN apt-get update && apt-get install -y \
-    automake \
-    build-essential \
-    curl \
+FROM debian:9.5
+# Update repo list
+RUN apt-get update
+# Install dependencies
+RUN apt-get install -y \
+    libc6-dev-i386 \
+    lib32z1-dev \
+    g++-6-multilib \
+    make \
     wget \
-    libboost-dev \
-    libsqlite3-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    g++-4.8 \
- && rm -rf /var/lib/apt/lists/*
-# For building RISC-V Tools
-RUN apt-get update && apt-get install -y \
-    autoconf \
-    automake \
-    autotools-dev \
-    bc \
-    bison \
-    curl \
-    device-tree-compiler \
-    flex \
-    gawk \
-    gperf \
-    libexpat-dev \
-    libgmp-dev \
-    libmpc-dev \
-    libmpfr-dev \
-    libtool \
-    libusb-1.0-0-dev \
-    patchutils \
-    pkg-config \
-    texinfo \
-    zlib1g-dev \
- && rm -rf /var/lib/apt/lists/*
-# Helper utilities
-RUN apt-get update && apt-get install -y \
-    gdb \
+    python \
     git \
- && rm -rf /var/lib/apt/lists/*
+    libbz2-dev \
+    g++ \
+    libboost-dev \
+    libsqlite3-dev
+# Install helper utilities
+RUN apt-get install -y \
+    procps \
+    vim
+# TODO: Install benchmarks dependencies
+#RUN apt-get install -y \
+#    gfortran \
+#    m4 \
+#    xsltproc \
+#    pkg-config \
+#    gettext \
+#    libx11-dev \
+#    libxext-dev \
+#    libxt-dev \
+#    libxmu-dev \
+#    libxi-dev

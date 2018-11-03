@@ -27,7 +27,7 @@ Neste caso o image_id é **4b90f69ca885**
 
 * inicializar container da imagem criada
 ```bash
-docker run -v caminho_do_clone/shared/:/root/shared -ti image_id /bin/bash
+docker run -v caminho_do_clone/shared/:/root/shared --privileged -ti image_id /bin/bash
 ```
 
 * executar script de instalação do sniper no container

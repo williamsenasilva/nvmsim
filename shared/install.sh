@@ -8,6 +8,7 @@ tar -xf sniper-latest.tgz --directory /opt
 echo 'export SNIPER_HOME=/opt/sniper-7.1' >> ~/.bashrc
 source ~/.bashrc
 cd /opt/sniper-7.1/; make
+alias run-sniper=/opt/sniper-7.1/run-sniper
 echo 'testando a instalação do sniper'
 cd /opt/sniper-7.1/test/fft; make run
 #todo: instalar benchmarks

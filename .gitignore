@@ -1,0 +1,4 @@
+shared/pin.log
+shared/sim.*
+shared/src/note-tests
+shared/src/sniper-tests

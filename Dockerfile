@@ -17,7 +17,8 @@ RUN apt-get install -y \
 # Install helper utilities
 RUN apt-get install -y \
     procps \
-    vim
+    vim \
+    emacs
 # TODO: Install benchmarks dependencies
 #RUN apt-get install -y \
 #    gfortran \

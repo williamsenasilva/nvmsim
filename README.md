@@ -17,7 +17,7 @@ docker build . -t nvmsim:0.1
 
 * inicializar container da imagem criada
 ```bash
-docker run -v $NVMSIMPATH/shared/:/root/shared --privileged -ti nvmsim:0.1 /bin/bash  -c 'cd /root/shared; exec "${SHELL:-sh}"'
+docker run --privileged -it -v $NVMSIMPATH/shared/:/root/shared nvmsim:0.1 
 ```
 
 * executar script de instalação do sniper no container

@@ -1,8 +1,7 @@
 FROM debian:9.5
-# Update repo list
-RUN apt-get update
-# Install dependencies
-RUN apt-get install -y \
+
+# Update repo list and install dependencies
+RUN apt-get update && apt-get install -y \
     libc6-dev-i386 \
     lib32z1-dev \
     g++-6-multilib \
@@ -14,11 +13,16 @@ RUN apt-get install -y \
     g++ \
     libboost-dev \
     libsqlite3-dev
+
 # Install helper utilities
 RUN apt-get install -y \
     procps \
     vim \
     emacs
+
+# Mount entrypoint
+ENTRYPOINT ["/bin/bash"]
+
 # TODO: Install benchmarks dependencies
 #RUN apt-get install -y \
 #    gfortran \

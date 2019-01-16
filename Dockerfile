@@ -20,6 +20,18 @@ RUN apt-get install -y \
     vim \
     emacs
 
+# Create shared folder
+RUN mkdir -p /root/shared
+
+# Install Sniper 
+ADD shared/vendor/pinplay-drdebug-3.5-pin-3.5-97503-gac534ca30-gcc-linux.tar.bz2 /opt
+ADD shared/vendor/sniper-latest.tgz /opt
+ADD setup.sh /tmp
+RUN chmod +x /tmp/setup.sh && /tmp/setup.sh
+
+# Set WORKDIR
+WORKDIR /root/shared
+
 # Mount entrypoint
 ENTRYPOINT ["/bin/bash"]
 

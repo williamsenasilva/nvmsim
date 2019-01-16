@@ -1,5 +1,6 @@
 # NVMSIM
 
-## 0.1 - imagem docker sem rodar script.sh 
+## 0.1 - yyyy-mm-dd
 
-## 0.2 - imagem docker após rodar script.sh
+#### Adicionado
+- imagem docker  

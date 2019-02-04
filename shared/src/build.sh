@@ -1,18 +1,12 @@
 #!/bin/bash
 
-rm -rf ./sniper-tests &
-BACK_PID=$!
-wait $BACK_PID
+rm -rf ./sniper-tests
 
 for filepath in ./*.c ; do
     filename=$(basename $filepath)
     pathname="${filename%.c}"
-    mkdir -p ./sniper-tests/$pathname &
-    BACK_PID=$!
-    wait $BACK_PID
-    mkdir -p ./sniper-tests/$pathname/logs &
-    BACK_PID=$!
-    wait $BACK_PID
+    mkdir -p ./sniper-tests/$pathname
+    mkdir -p ./sniper-tests/$pathname/logs
 done
 
 gcc -Wall -O0 hello_world.c -o ./sniper-tests/hello_world/hello_world
@@ -32,7 +26,5 @@ alias run-sniper=/opt/sniper-7.1/run-sniper
 for filepath in ./*.c ; do
     filename=$(basename $filepath)
     pathname="${filename%.c}"
-    run-sniper -d ./sniper-tests/$pathname/logs -- ./sniper-tests/$pathname/$pathname & 
-    BACK_PID=$!
-    wait $BACK_PID
+    run-sniper -d ./sniper-tests/$pathname/logs -- ./sniper-tests/$pathname/$pathname
 done

@@ -3,27 +3,45 @@
 Código fonte mais documentação da aplicação
 
 ## Começando
-* clone do projeto e configuração de variável de ambiente
+
+* **clone do projeto e configuração de variável de ambiente**
 ```bash
-git clone git@gitlab.com:williamsenasilva/nvmsim.git
-cd nvmsim
-{ echo export NVMSIMPATH=; pwd; } | tr "\n" " " | sed 's/= /=/g'  >> ~/.bashrc
-source ~/.bashrc
-```
-* construir imagem Docker
-```bash
-docker build . -t nvmsim:0.1
+git clone git@gitlab.com:williamsenasilva/nvmsim.git && cd nvmsim && echo export NVMSIMPATH=$(pwd) >> ~/.bashrc && source ~/.bashrc
 ```
 
-* inicializar container da imagem criada
+* **construir imagem Docker**
 ```bash
-docker run -v $NVMSIMPATH/shared/:/root/shared --privileged -ti nvmsim:0.1 /bin/bash  -c 'cd /root/shared; exec "${SHELL:-sh}"'
+docker build . -t nvmsim:1.0.0
 ```
 
-* executar script de instalação do sniper no container
+* **inicializar container da imagem criada**
 ```bash
-chmod +x install.sh 
-./install.sh
+docker run -it --rm --privileged -v $NVMSIMPATH/shared/:/nvmsim/shared nvmsim:1.0.0
+```
+
+* **executar script de instalação do sniper no container**
+```bash
+chmod +x shared/install_sniper.sh 
+. shared/install_sniper.sh
+```
+
+* **salvar nova imagem com sniper instalado**
+
+tecle ctrl + p + q 
+
+Depois execute:
+```bash
+docker ps
+```
+
+Copie o CONTAINER ID e cole no comando abaixo no lugar de container_id
+```bash
+docker commit container_id nvmsim:1.0.1
+```
+
+exemplo
+```bash
+docker commit 4eaf629a8cf9 nvmsim:1.0.1
 ```
 
 ## Documentação

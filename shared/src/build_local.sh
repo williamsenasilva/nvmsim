@@ -1,19 +1,15 @@
 #!/bin/bash
 
-rm -rf ./note-tests &
-BACK_PID=$!
-wait $BACK_PID
+rm -rf ./note-tests
 
 for filepath in ./*.c ; do
     filename=$(basename $filepath)
     pathname="${filename%.c}"
-    mkdir -p ./note-tests/$pathname &
-    BACK_PID=$!
-    wait $BACK_PID
-    mkdir -p ./note-tests/$pathname/logs &
-    BACK_PID=$!
-    wait $BACK_PID
+    mkdir -p ./note-tests/$pathname 
+    mkdir -p ./note-tests/$pathname/logs
 done
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )" 
 
 gcc -Wall -O0 hello_world.c -o ./note-tests/hello_world/hello_world
 gcc -Wall -O0 01.c -o ./note-tests/01/01
@@ -30,11 +26,10 @@ gcc -Wall -O3 -fno-tree-vectorize 05-a.c -o ./note-tests/05-a/05-a
 for filepath in ./*.c ; do
     filename=$(basename $filepath)
     pathname="${filename%.c}"
-    ./note-tests/$pathname/$pathname & 
-    BACK_PID=$!
-    wait $BACK_PID
+    valgrind --leak-check=yes --log-file=./note-tests/$pathname/logs/valgrind.log ./note-tests/$pathname/$pathname
     echo "finished " $pathname
 done
+
 
 # todo
 # instalar valgrind

@@ -1,5 +1,11 @@
 # NVMSIM
 
-## 0.1 - imagem docker sem rodar script.sh 
+## [1.0.1] - yyyy-mm-dd
 
-## 0.2 - imagem docker após rodar script.sh
+#### Adicionado
+- adicionado sniper simulator
+
+## [1.0.0] - yyyy-mm-dd
+
+#### Adicionado
+- Adicionado imagem com as necessárias  

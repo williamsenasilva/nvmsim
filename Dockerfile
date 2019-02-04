@@ -1,33 +1,31 @@
-FROM debian:9.5
+FROM debian:9.4
+
 # Update repo list
 RUN apt-get update
+
 # Install dependencies
 RUN apt-get install -y \
-    libc6-dev-i386 \
-    lib32z1-dev \
+    g++ \ 
     g++-6-multilib \
-    make \
-    wget \
-    python \
     git \
-    libbz2-dev \
-    g++ \
+    lib32z1-dev \
     libboost-dev \
-    libsqlite3-dev
+    libbz2-dev \
+    libc6-dev-i386 \
+    libsqlite3-dev \
+    make \
+    python \
+    valgrind \
+    wget 
+
 # Install helper utilities
 RUN apt-get install -y \
     procps \
     vim \
     emacs
-# TODO: Install benchmarks dependencies
-#RUN apt-get install -y \
-#    gfortran \
-#    m4 \
-#    xsltproc \
-#    pkg-config \
-#    gettext \
-#    libx11-dev \
-#    libxext-dev \
-#    libxt-dev \
-#    libxmu-dev \
-#    libxi-dev
+
+RUN mkdir -p /nvmsim/shared
+
+WORKDIR /nvmsim/shared
+
+ENTRYPOINT ["/bin/bash"]

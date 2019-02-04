@@ -1,0 +1,127 @@
+.
+├── CHANGELOG.md
+├── doc
+│   ├── cronograma_para_implantacao.ods
+│   ├── cronograma_para_implantacao.pdf
+│   ├── cronograma_para_implantacao.png
+│   └── sniper-manual.pdf
+├── Dockerfile
+├── install_sniper.sh
+├── README.md
+├── shared
+│   ├── install_sniper.sh
+│   ├── src
+│   │   ├── 01-a.c
+│   │   ├── 01.c
+│   │   ├── 02-a.c
+│   │   ├── 02.c
+│   │   ├── 03-a.c
+│   │   ├── 03.c
+│   │   ├── 04-a.c
+│   │   ├── 04.c
+│   │   ├── 05-a.c
+│   │   ├── 05.c
+│   │   ├── build_local.sh
+│   │   ├── build.sh
+│   │   ├── hello_world.c
+│   │   ├── note-tests
+│   │   │   ├── 01
+│   │   │   │   ├── 01
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 01-a
+│   │   │   │   ├── 01-a
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 02
+│   │   │   │   ├── 02
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 02-a
+│   │   │   │   ├── 02-a
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 03
+│   │   │   │   ├── 03
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 03-a
+│   │   │   │   ├── 03-a
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 04
+│   │   │   │   ├── 04
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 04-a
+│   │   │   │   ├── 04-a
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 05
+│   │   │   │   ├── 05
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   ├── 05-a
+│   │   │   │   ├── 05-a
+│   │   │   │   └── logs
+│   │   │   │       └── valgrind.log
+│   │   │   └── hello_world
+│   │   │       ├── hello_world
+│   │   │       └── logs
+│   │   │           └── valgrind.log
+│   │   └── sniper-tests
+│   │       ├── 01
+│   │       │   ├── 01
+│   │       │   └── logs
+│   │       │       ├── sim.cfg
+│   │       │       ├── sim.info
+│   │       │       ├── sim.out
+│   │       │       └── sim.stats.sqlite3
+│   │       ├── 01-a
+│   │       │   ├── 01-a
+│   │       │   └── logs
+│   │       │       ├── sim.cfg
+│   │       │       ├── sim.info
+│   │       │       ├── sim.out
+│   │       │       └── sim.stats.sqlite3
+│   │       ├── 02
+│   │       │   ├── 02
+│   │       │   └── logs
+│   │       ├── 02-a
+│   │       │   ├── 02-a
+│   │       │   └── logs
+│   │       │       ├── sim.cfg
+│   │       │       ├── sim.out
+│   │       │       └── sim.stats.sqlite3
+│   │       ├── 03
+│   │       │   ├── 03
+│   │       │   └── logs
+│   │       ├── 03-a
+│   │       │   ├── 03-a
+│   │       │   └── logs
+│   │       ├── 04
+│   │       │   ├── 04
+│   │       │   └── logs
+│   │       ├── 04-a
+│   │       │   ├── 04-a
+│   │       │   └── logs
+│   │       │       ├── sim.cfg
+│   │       │       ├── sim.info
+│   │       │       ├── sim.out
+│   │       │       └── sim.stats.sqlite3
+│   │       ├── 05
+│   │       │   ├── 05
+│   │       │   └── logs
+│   │       ├── 05-a
+│   │       │   ├── 05-a
+│   │       │   └── logs
+│   │       └── hello_world
+│   │           ├── hello_world
+│   │           └── logs
+│   └── vendor
+│       ├── pinplay-drdebug-3.5-pin-3.5-97503-gac534ca30-gcc-linux.tar.bz2
+│       ├── sniper-benchmarks.tbz
+│       └── sniper-latest.tgz
+└── tree.txt
+
+50 directories, 74 files

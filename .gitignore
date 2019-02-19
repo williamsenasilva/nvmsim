@@ -1,4 +1,5 @@
 shared/pin.log
 shared/sim.*
-shared/src/note-tests
+shared/src/server-tests
+shared/src/docker-tests
 shared/src/sniper-tests

@@ -10,8 +10,8 @@
 #define ONE_K 1024
 #define ONE_M ONE_K * ONE_K
 
-#define VSIZE (1 * 100000)
-#define ITERS (1 * 1000)
+#define VSIZE (500 * ONE_M)
+#define ITERS (10 * ONE_M)
 
 int main() {
 

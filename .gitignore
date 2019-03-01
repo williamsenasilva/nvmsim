@@ -3,3 +3,4 @@ shared/sim.*
 shared/src/server-tests
 shared/src/docker-tests
 shared/src/sniper-tests
+shared/logs/

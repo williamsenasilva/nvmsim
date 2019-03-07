@@ -23,6 +23,7 @@ gcc -Wall -O3 -fno-tree-vectorize c_programs/memory_issues/05-a.c -o ./logs/serv
 for filepath in ./c_programs/memory_issues/*.c ; do
     filename=$(basename $filepath)
     pathname="${filename%.c}"
+    echo "running " $pathname " ..."
     valgrind --leak-check=yes --log-file=./logs/server/memory_issues/$DATE/$pathname/logs/valgrind.log ./logs/server/memory_issues/$DATE/$pathname/$pathname
-    echo "finished " $pathname
+    echo "running " $pathname " ... done"
 done

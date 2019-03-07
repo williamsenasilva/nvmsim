@@ -22,17 +22,17 @@ RUN apt-get install -y \
     emacs
 
 ADD vendor/pinplay-drdebug-3.5-pin-3.5-97503-gac534ca30-gcc-linux.tar.bz2 /opt
-ADD vendor/sniper-latest.tgz /opt
-
 ENV PIN_HOME=/opt/pinplay-drdebug-3.5-pin-3.5-97503-gac534ca30-gcc-linux
-ENV SNIPER_HOME=/opt/sniper-7.1
+
+ADD vendor/sniper-latest.tgz /opt
+ENV SNIPER_HOME=/opt/sniper-7.2
 
 RUN echo 'installing sniper...'
-RUN cd /opt/sniper-7.1/; make
+RUN cd /opt/sniper-7.2/; make
 RUN echo 'installing sniper... done'
 
-RUN echo "alias run-sniper='/opt/sniper-7.1/run-sniper'" >> ~/.bashrc
-RUN echo "alias test-sniper='cd /opt/sniper-7.1/test/fft; make run'" >> ~/.bashrc
+RUN echo "alias run-sniper='/opt/sniper-7.2/run-sniper'" >> ~/.bashrc
+RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashrc
 
 WORKDIR /nvmsim
 

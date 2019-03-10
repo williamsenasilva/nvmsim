@@ -64,9 +64,7 @@ ENV PIN_HOME=/opt/pin-3.7-97619-g0d0c92f4f-gcc-linux
 ADD vendor/sniper-7.2.tgz /opt
 ENV SNIPER_HOME=/opt/sniper-7.2
 
-RUN echo 'installing sniper...'
 RUN cd /opt/sniper-7.2/; make
-RUN echo 'installing sniper... done'
 
 RUN echo "alias run-sniper='/opt/sniper-7.2/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashrc

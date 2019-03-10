@@ -28,8 +28,10 @@ docker build . -t nvmsim/ubuntu-18.04-sniper-7.2-pinplay-3.5:1.0.0 -f Dockerfile
 
 docker build . -t nvmsim/debian-9.4-sniper-7.1-pin-3.7:1.0.0 -f Dockerfile-debian-9.4-sniper-7.1-pin-3.7
 docker build . -t nvmsim/debian-9.4-sniper-7.1-pinplay-3.5:1.0.0 -f Dockerfile-debian-9.4-sniper-7.1-pinplay-3.5
+docker build . -t nvmsim/debian-9.4-sniper-7.1-pinplay-3.7:1.0.0 -f Dockerfile-debian-9.4-sniper-7.1-pinplay-3.7
 docker build . -t nvmsim/debian-9.4-sniper-7.2-pin-3.7:1.0.0 -f Dockerfile-debian-9.4-sniper-7.2-pin-3.7
 docker build . -t nvmsim/debian-9.4-sniper-7.2-pinplay-3.5:1.0.0 -f Dockerfile-debian-9.4-sniper-7.2-pinplay-3.5
+docker build . -t nvmsim/debian-9.4-sniper-7.2-pinplay-3.7:1.0.0 -f Dockerfile-debian-9.4-sniper-7.2-pinplay-3.7
 ```
 
 ## Documentação

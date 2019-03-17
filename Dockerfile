@@ -1,4 +1,4 @@
-FROM debian:9.4
+FROM debian:latest
 
 # Add i386 support for support for Pin
 RUN dpkg --add-architecture i386
@@ -58,8 +58,8 @@ RUN apt-get update && apt-get install -y \
     emacs \
     && rm -rf /var/lib/apt/lists/*
 
-ADD vendor/pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
-ENV PIN_HOME=/opt/pin-3.7-97619-g0d0c92f4f-gcc-linux
+ADD vendor/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
+ENV PIN_HOME=/opt/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
 
 ADD vendor/sniper-7.2.tgz /opt
 ENV SNIPER_HOME=/opt/sniper-7.2

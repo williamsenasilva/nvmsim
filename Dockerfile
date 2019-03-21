@@ -49,6 +49,10 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# For building SPEC CPU2006
+RUN apt-get update && apt-get install -y \
+    gfortran
+
 # Helper utilities
 RUN apt-get update && apt-get install -y \
     gdb \

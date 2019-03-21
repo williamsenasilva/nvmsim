@@ -1,11 +1,11 @@
 # NVMSIM
 
-## [1.0.1] - yyyy-mm-dd
+## [1.1.0] - 2019-03-21
 
 #### Adicionado
-- adicionado sniper simulator
+- adicionado SPEC CPU 2006
 
-## [1.0.0] - yyyy-mm-dd
+## [1.0.0] - 2019-03-17
 
 #### Adicionado
-- Adicionado imagem com as necessárias  
+- Adicionado imagem com aplicações e configurações necessárias para rodar sniper-7.2 + pinplay 3.7  

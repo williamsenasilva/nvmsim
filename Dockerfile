@@ -1,4 +1,4 @@
-FROM debian:latest
+FROM ubuntu:18.04
 
 # Add i386 support for support for Pin
 RUN dpkg --add-architecture i386

@@ -2,19 +2,19 @@
 
 Código fonte mais documentação da aplicação
 
-* #### cópia do projeto e configuração de variável de ambiente
+* #### cópia do projeto 
 ```bash
-git clone git@gitlab.com:williamsenasilva/nvmsim.git; cd nvmsim; echo export NVMSIMPATH=$(pwd) >> ~/.bashrc; source ~/.bashrc
+git clone git@gitlab.com:williamsenasilva/nvmsim.git
 ```
 
 * #### construir imagem Docker
 ```bash
-docker build -t nvmsim:1.0.0 .
+docker build -t nvmsim:latest .
 ```
 
 * #### inicializar container da imagem criada
 ```bash
-docker run -it --rm --privileged -v $NVMSIMPATH/shared:/nvmsim/ nvmsim:1.0.0
+docker run -it --rm --privileged -v $(pwd)/shared:/nvmsim/ nvmsim:latest
 ```
 
 * #### testar o Sniper

@@ -1,4 +1,4 @@
-vendor/spec_cpu2006v1.01.iso
+vendor/
 shared/pin.log
 shared/sim.*
 shared/src/server-tests

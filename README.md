@@ -39,6 +39,7 @@ cd /opt/sniper-7.2 && make
 * #### testar
 ```bash
 cd /nvmsim/tests && run-sniper -c gainestown -c memory.cfg -d /nvmsim/tests -- /bin/true
+cat sim.out
 ```
 
 ## Documentação

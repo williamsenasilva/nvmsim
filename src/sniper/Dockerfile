@@ -75,8 +75,8 @@ RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashr
 # Custom files
 ADD src/sniper/dram_perf_model.cc /opt/sniper-7.2/common/performance_model/
 ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/dram_perf_model.nvm.h /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/config.cfg /opt/sniper-7.2/config/
+ADD src/sniper/dram_perf_model_nvm.h /opt/sniper-7.2/common/performance_model/
+ADD src/sniper/base.cfg /opt/sniper-7.2/config/
 
 RUN cd /opt/sniper-7.2/; make
 

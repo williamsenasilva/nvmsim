@@ -2,6 +2,7 @@ FROM ubuntu:18.04
 
 # For NVMain
 RUN apt-get update && apt-get install -y \
+    build-essential \
     mercurial \
     scons \
     && rm -rf /var/lib/apt/lists/*

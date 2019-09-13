@@ -1,1 +1,0 @@
-/opt/sniper-7.2/frontend/pin-frontend/../../common/misc/fixed_types.h

@@ -4,7 +4,15 @@ services:
     container_name: sniper
     image: nvmsim/sniper:latest
     restart: always
+    volumes:
+      - ./src/sniper/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    command:
+      - entrypoint.sh
   nvmain:
     container_name: nvmain
     image: nvmsim/nvmain:latest
     restart: always
+    volumes:
+      - ./src/nvmain/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    command:
+      - entrypoint.sh

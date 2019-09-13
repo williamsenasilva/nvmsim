@@ -1,0 +1,10 @@
+version: "3.5"
+services:
+  sniper:
+    container_name: sniper
+    image: nvmsim/sniper:latest
+    restart: always
+  nvmain:
+    container_name: nvmain
+    image: nvmsim/nvmain:latest
+    restart: always

@@ -50,7 +50,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ADD vendor/sniper-latest.tgz /opt
+ADD vendor/sniper-7.2.tgz /opt
 ENV SNIPER_HOME=/opt/sniper-7.2
 ADD vendor/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
 ENV PIN_HOME=/opt/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux

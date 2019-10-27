@@ -80,6 +80,7 @@ ADD src/sniper/base.cfg /opt/sniper-7.2/config/
 
 RUN cd /opt/sniper-7.2/; make
 
-WORKDIR /opt/sniper-7.2
+RUN mkdir -p /nvmsim/logs
+WORKDIR /nvmsim
 
 ENTRYPOINT ["/bin/bash"]

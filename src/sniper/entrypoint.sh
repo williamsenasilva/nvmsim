@@ -1,4 +1,4 @@
 #!/bin/bash
 
 cd /opt/sniper-7.2;
-cd test/fft; make run
+/opt/sniper-7.2/run-sniper -d /nvmsim/logs -- /bin/date

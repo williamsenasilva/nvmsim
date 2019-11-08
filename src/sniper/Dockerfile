@@ -50,12 +50,6 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-ADD vendor/sniper-7.2.tgz /opt
-ENV SNIPER_HOME=/opt/sniper-7.2
-ADD vendor/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
-ENV PIN_HOME=/opt/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
-RUN cd /opt/sniper-7.2/; make
-
 # For SPEC CPU2006
 RUN apt-get update && apt-get install -y \
     gfortran
@@ -68,19 +62,27 @@ RUN apt-get update && apt-get install -y \
     emacs \
     && rm -rf /var/lib/apt/lists/*
 
-# Config environment
+# Add vendor sources and make
+ADD vendor/sniper-7.2.tgz /opt
+ADD vendor/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
+
+# Set environment values and alias
+ENV SNIPER_HOME=/opt/sniper-7.2
+ENV PIN_HOME=/opt/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
 RUN echo "alias run-sniper='/opt/sniper-7.2/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashrc
-
-# Custom files
-ADD src/sniper/dram_perf_model.cc /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.h /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/base.cfg /opt/sniper-7.2/config/
 
 RUN cd /opt/sniper-7.2/; make
 
 RUN mkdir -p /nvmsim/logs
+
 WORKDIR /nvmsim
 
 ENTRYPOINT ["/bin/bash"]
+
+# Add custom files and make
+ADD src/sniper/dram_perf_model.cc /opt/sniper-7.2/common/performance_model/
+ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper-7.2/common/performance_model/
+ADD src/sniper/dram_perf_model_nvm.h /opt/sniper-7.2/common/performance_model/
+ADD src/sniper/base.cfg /opt/sniper-7.2/config/
+RUN cd /opt/sniper-7.2/; make

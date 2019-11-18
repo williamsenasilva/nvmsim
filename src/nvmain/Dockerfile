@@ -1,4 +1,5 @@
 FROM ubuntu:18.04
+MAINTAINER William Sena Silva
 
 # For NVMain
 RUN apt-get update && apt-get install -y \
@@ -16,6 +17,8 @@ RUN cd /opt/nvmain && scons --build-type=fast
 RUN cd /opt/nvmain && scons --build-type=debug
 RUN cd /opt/nvmain && scons --build-type=prof
 
+EXPOSE 2000
 WORKDIR /opt/nvmain
-
 ENTRYPOINT ["/bin/bash"]
+
+# Add custom files and make

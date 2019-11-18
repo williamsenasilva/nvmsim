@@ -1,4 +1,5 @@
 FROM ubuntu:18.04
+MAINTAINER William Sena Silva
 
 # Add i386 support for support for Pin
 RUN dpkg --add-architecture i386
@@ -73,11 +74,10 @@ RUN echo "alias run-sniper='/opt/sniper-7.2/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashrc
 
 RUN cd /opt/sniper-7.2/; make
-
 RUN mkdir -p /nvmsim/logs
 
+EXPOSE 7200
 WORKDIR /nvmsim
-
 ENTRYPOINT ["/bin/bash"]
 
 # Add custom files and make

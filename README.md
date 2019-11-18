@@ -10,19 +10,12 @@ Código fonte mais documentação da aplicação
 git clone git@gitlab.com:williamsenasilva/nvmsim.git
 ```
 
--   #### construir imagens Docker
-
-```bash
-docker build -t nvmsim/sniper:latest -f src/sniper/Dockerfile .
-docker build -t nvmsim/nvmain:latest -f src/nvmain/Dockerfile .
-```
-
 ## Testes
 
 -   #### inicializar containers
 
 ```bash
-. run-nvmsim.sh
+sh run-nvmsim.sh
 ```
 
 ## Documentação

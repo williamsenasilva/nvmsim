@@ -22,3 +22,5 @@ WORKDIR /opt/nvmain
 ENTRYPOINT ["/bin/bash"]
 
 # Add custom files and make
+ADD src/server.c /opt/nvmain
+RUN gcc /opt/nvmain/server.c -o /opt/nvmain/server

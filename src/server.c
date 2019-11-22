@@ -1,65 +1,99 @@
 #include <unistd.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <string.h>
-#define PORT 8080
+#include <stdio.h> 
+#include <netdb.h> 
+#include <netinet/in.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <sys/socket.h> 
+#include <sys/types.h> 
+#define MAX 80 
+#define PORT 2000 
 
-int main(int argc, char const *argv[])
-{
-    int server_fd, new_socket, valread;
-    struct sockaddr_in address;
-    int opt = 1;
-    int addrlen = sizeof(address);
-    char buffer[1024] = {0};
-    char message_to_client[64];
+void chat(int); 
 
-    // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
-    {
-        perror("socket failed");
-        exit(EXIT_FAILURE);
-    }
+// Driver function 
+int main() 
+{ 
+   int server_socket, server_connection, len; 
+   struct sockaddr_in servaddr, client; 
 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
-                   &opt, sizeof(opt)))
-    {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons( PORT );
+   // socket create and verification 
+   server_socket = socket(AF_INET, SOCK_STREAM, 0); 
+   if (server_socket == -1) 
+   { 
+      printf("socket creation failed...\n"); 
+      exit(0); 
+   } 
+   else 
+   {
+      printf("Socket successfully created..\n"); 
+   }
+   bzero(&servaddr, sizeof(servaddr)); 
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr *)&address,
-             sizeof(address))<0)
-    {
-        perror("bind failed");
-        exit(EXIT_FAILURE);
-    }
-    if (listen(server_fd, 3) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
-    {
-        perror("accept");
-        exit(EXIT_FAILURE);
-    }
+   // assign IP, PORT 
+   servaddr.sin_family = AF_INET; 
+   servaddr.sin_addr.s_addr = htonl(INADDR_ANY); 
+   servaddr.sin_port = htons(PORT); 
 
-    while (new_socket) {
-        valread = read(new_socket, buffer, 1024);
-        sprintf(message_to_client, "I received \"%s\1", buffer);
-        send(new_socket, message_to_client, strlen(message_to_client), 0);
+   // Binding newly created socket to given IP and verification 
+   if ((bind(server_socket, (struct sockaddr*) &servaddr, sizeof(servaddr))) != 0) { 
+      printf("socket bind failed...\n"); 
+      exit(0); 
+   } 
+   else
+      printf("Socket successfully binded..\n"); 
 
-        printf("message from client: %s\n", buffer);
-        printf("message to client: %s\n", message_to_client);
-    }
+   // Now server is ready to listen and verification 
+   if ((listen(server_socket, 5)) != 0) 
+   { 
+      printf("Listen failed...\n"); 
+      exit(0); 
+   } 
+   else
+   {
+      printf("Server listening..\n"); 
+   }
+   len = sizeof(client); 
 
-    return 0;
+   // Accept the data packet from client and verification 
+   server_connection = accept(server_socket, (struct sockaddr*) &client, &len); 
+   if (server_connection < 0) 
+   { 
+      printf("server acccept failed...\n"); 
+      exit(0); 
+   } 
+   else
+   {
+      printf("server acccept the client...\n"); 
+   }
+
+   // Function for chatting between client and server 
+   chat(server_connection); 
+
+   // After chatting close the socket 
+   close(server_socket); 
+} 
+
+// Function designed for chat between client and server. 
+void chat(int server_connection) 
+{ 
+   char buffer[MAX]; 
+   int pow;
+   for(;;) 
+   { 
+      bzero(buffer, sizeof(buffer)); 
+      read(server_connection, buffer, sizeof(buffer)); 
+      printf("From client: %s\n", buffer);
+      
+      // if msg contains "Exit" then server exit and chat ended. 
+      if (strncmp("exit", buffer, 4) == 0) 
+      { 
+         printf("Server Exit...\n"); 
+         break; 
+      }
+
+      pow = atoi(buffer) * atoi(buffer);
+      sprintf(buffer, "%d", pow);
+      write(server_connection, buffer, sizeof(buffer));  
+   } 
 }
-

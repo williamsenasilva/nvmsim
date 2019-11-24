@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "entrypoint of nvmain started"
+echo "entrypoint of nvmain started..."
 cd /opt/nvmain;
-#scons --build-type=fast
-#./nvmain.fast
-./server
+scons --build-type=fast
+./nvmain.fast
+echo "entrypoint of nvmain started... done"

@@ -24,3 +24,8 @@ ENTRYPOINT ["/bin/bash"]
 # Add custom files and make
 ADD src/server.c /opt/nvmain
 RUN gcc /opt/nvmain/server.c -o /opt/nvmain/server
+ADD src/nvmain/SConscript /opt/nvmain
+ADD src/nvmain/SConstruct /opt/nvmain
+# remove gem5 dependency
+RUN sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' /opt/nvmain/SConscript
+RUN cd /opt/nvmain && scons --build-type=fast

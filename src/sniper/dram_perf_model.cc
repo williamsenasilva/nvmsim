@@ -9,8 +9,7 @@
 DramPerfModel* DramPerfModel::createDramPerfModel(core_id_t core_id, UInt32 cache_block_size)
 {
    String type = Sim()->getCfg()->getString("perf_model/dram/type");
-
-   LOG_PRINT("[DramPerfModel::createDramPerfModel] perf_model/dram/type: %s\n", type.c_str());
+   printf("[NVMSIM] perf_model/dram/type: %s\n", type.c_str());
 
    if (type == "constant")
    {

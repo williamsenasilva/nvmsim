@@ -1,19 +1,19 @@
 # Copyright (c) 2012-2013, The Microsystems Design Labratory (MDL)
 # Department of Computer Science and Engineering, The Pennsylvania State University
 # All rights reserved.
-# 
+#
 # This source code is part of NVMain - A cycle accurate timing, bit accurate
 # energy simulator for both volatile (e.g., DRAM) and non-volatile memory
 # (e.g., PCRAM). The source code is free and you can redistribute and/or
 # modify it by providing that the following conditions are met:
-# 
+#
 #  1) Redistributions of source code must retain the above copyright notice,
 #     this list of conditions and the following disclaimer.
-# 
+#
 #  2) Redistributions in binary form must reproduce the above copyright notice,
 #     this list of conditions and the following disclaimer in the documentation
 #     and/or other materials provided with the distribution.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -24,9 +24,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-# 
-# Author list: 
-#   Matt Poremba    ( Email: mrp5060 at psu dot edu 
+#
+# Author list:
+#   Matt Poremba    ( Email: mrp5060 at psu dot edu
 #                     Website: http://www.cse.psu.edu/~poremba/ )
 
 import os, sys
@@ -45,20 +45,16 @@ Import('*')
 
 # Assume that this is a gem5 extras build if this is set.
 if 'TARGET_ISA' in env and env['TARGET_ISA'] == 'no':
+    print "case 1"
     Return()
 
     env.Append(CPPPATH=Dir('.'))
 
 if 'TARGET_ISA' in env and not 'NVMAIN_BUILD' in env:
+    print "case 2"
     def NVMainSource(src):
         return Source(src)
     Export('NVMainSource')
-
-# Assume that this is a gem5 extras build if this is set.
-if 'TARGET_TCP' in env and env['TARGET_TCP'] == 'sniper':
-    print "[NVMSIM] target is tcp and the simulator is sniper"
-    Return()
-    env.Append(CPPPATH=Dir('.'))
 
 # Common source files for any build
 NVMainSource('NVM/nvmain.cpp')
@@ -99,11 +95,29 @@ elif "NVMAINPATH" in os.environ:
     # Assume that this is a Zsim build if this is set.
     # Nothing to be done here for now.
     pass
-elif "TARGET_TCP" in os.environ:
-    print "[NVMSIM] simulator is Sniper"
-    pass
+elif "NVMSIM" in os.environ:
+    print "[NVMSIM] simulator is nvmsim"
+    NVMainSource('SimInterface/SniperInterface/SniperInterface.cpp')
+
+    print "[NVMSIM] gerating dir..."
+    generated_dir = Dir('../protocol')
+    print "[NVMSIM] gerating dir... done"
+
+    def MakeIncludeAction(target, source, env):
+        print "[NVMSIM] MakeIncludeAction(...) - init"
+        f = file(str(target[0]), 'w')
+        for s in source:
+            print >>f, '#include "%s"' % str(s.abspath)
+        f.close()
+        print "[NVMSIM] MakeIncludeAction(...) - done"
+
+    def MakeInclude(source):
+        print "[NVMSIM] MakeInclude(...) - init"
+        target = generated_dir.File(basename(source))
+        include_action = MakeAction(MakeIncludeAction, Transform("MAKE INC", 1))
+        env.Command(target, source, include_action)
+        print "[NVMSIM] MakeInclude(...) - done"
 else:
-    print "[NVMSIM] simulator error"
     print "ERROR: What kind of build is this?"
     sys.exit(1)
 

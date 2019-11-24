@@ -17,6 +17,9 @@ RUN cd /opt/nvmain && scons --build-type=fast
 RUN cd /opt/nvmain && scons --build-type=debug
 RUN cd /opt/nvmain && scons --build-type=prof
 
+# Set environment values and alias
+ENV NVMSIM="sniper"
+
 EXPOSE 2000
 WORKDIR /opt/nvmain
 ENTRYPOINT ["/bin/bash"]
@@ -24,8 +27,11 @@ ENTRYPOINT ["/bin/bash"]
 # Add custom files and make
 ADD src/server.c /opt/nvmain
 RUN gcc /opt/nvmain/server.c -o /opt/nvmain/server
+ADD src/nvmain/Simulators/sniper /opt/nvmain/Simulators/sniper
+ADD src/nvmain/SimInterface/SniperInterface /opt/nvmain/SimInterface/SniperInterface
 ADD src/nvmain/SConscript /opt/nvmain
 ADD src/nvmain/SConstruct /opt/nvmain
+
 # remove gem5 dependency
 RUN sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' /opt/nvmain/SConscript
 RUN cd /opt/nvmain && scons --build-type=fast

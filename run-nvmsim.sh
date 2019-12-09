@@ -8,7 +8,5 @@ cd $path;
 git pull origin master
 
 # docker-compose actions
-docker-compose down 
-#docker-compose pull
-docker-compose up -d 
-docker-compose logs -f -t
+docker-compose pull
+docker-compose down && docker-compose up -d && docker-compose logs -f -t

@@ -29,6 +29,7 @@ services:
 #    restart: always
     volumes:
       - ./src/nvmain/entrypoint.sh:/usr/local/bin/entrypoint.sh
+      - ./src/nvmain/tracefile:/opt/nvmain/tracefile.nvt
     networks:
       - nvmsim-network
     ports:

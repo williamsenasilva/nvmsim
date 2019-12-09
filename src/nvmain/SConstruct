@@ -4,9 +4,6 @@ import SCons
 
 from os.path import basename, dirname, exists, isdir, isfile, join as joinpath
 
-print "[SConstruct] env..."
-os.system("export")
-
 #
 #  Setup command line options for different build types
 #
@@ -62,11 +59,8 @@ elif build_type == "prof":
     env['OBJSUFFIX'] = '.po'
 
 
-if 'NVMSIM' in os.environ:
-    env['NVMSIM'] = os.environ['NVMSIM']
 env['BUILDROOT'] = "build"
-# env['NVMAIN_BUILD'] = "trace"
-
+env['NVMAIN_BUILD'] = "trace"
 
 env.Append(CPPPATH=Dir('.'))
 env.Append(CCFLAGS='-DTRACE')

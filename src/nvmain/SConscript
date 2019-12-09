@@ -33,8 +33,6 @@ import os, sys
 import subprocess
 
 from os.path import basename
-from gem5_scons import Transform
-
 
 HG_COMMAND = 'hg'
 if 'NVMAIN_HG' in os.environ:
@@ -45,13 +43,11 @@ Import('*')
 
 # Assume that this is a gem5 extras build if this is set.
 if 'TARGET_ISA' in env and env['TARGET_ISA'] == 'no':
-    print "case 1"
     Return()
 
     env.Append(CPPPATH=Dir('.'))
 
 if 'TARGET_ISA' in env and not 'NVMAIN_BUILD' in env:
-    print "case 2"
     def NVMainSource(src):
         return Source(src)
     Export('NVMainSource')
@@ -62,7 +58,17 @@ NVMainSource('SimInterface/NullInterface/NullInterface.cpp')
 NVMainSource('MemControl/MemoryControllerFactory.cpp')
 NVMainSource('traceReader/TraceLine.cpp')
 
-if 'NVMAIN_BUILD' in env:
+if "NVMSIM" in os.environ:
+    print "[NVMSIM] simulator is {}".format(os.environ["NVMSIM"])
+    # NVMainSource('SimInterface/SniperInterface/SniperInterface.h')
+    # NVMainSource('SimInterface/SniperInterface/SniperInterface.cpp')
+
+    NVMainSource('traceSim/traceMain.cpp')
+
+    NVMainSource('traceReader/TraceReaderFactory.cpp')
+    NVMainSource('traceReader/RubyTrace/RubyTraceReader.cpp')
+    NVMainSource('traceReader/NVMainTrace/NVMainTraceReader.cpp')
+elif 'NVMAIN_BUILD' in env:
     print "[NVMSIM] simulator is nvmain"
     # NVMain build.
     NVMainSource('traceSim/traceMain.cpp')
@@ -95,28 +101,6 @@ elif "NVMAINPATH" in os.environ:
     # Assume that this is a Zsim build if this is set.
     # Nothing to be done here for now.
     pass
-elif "NVMSIM" in os.environ:
-    print "[NVMSIM] simulator is nvmsim"
-    NVMainSource('SimInterface/SniperInterface/SniperInterface.cpp')
-
-    print "[NVMSIM] gerating dir..."
-    generated_dir = Dir('../protocol')
-    print "[NVMSIM] gerating dir... done"
-
-    def MakeIncludeAction(target, source, env):
-        print "[NVMSIM] MakeIncludeAction(...) - init"
-        f = file(str(target[0]), 'w')
-        for s in source:
-            print >>f, '#include "%s"' % str(s.abspath)
-        f.close()
-        print "[NVMSIM] MakeIncludeAction(...) - done"
-
-    def MakeInclude(source):
-        print "[NVMSIM] MakeInclude(...) - init"
-        target = generated_dir.File(basename(source))
-        include_action = MakeAction(MakeIncludeAction, Transform("MAKE INC", 1))
-        env.Command(target, source, include_action)
-        print "[NVMSIM] MakeInclude(...) - done"
 else:
     print "ERROR: What kind of build is this?"
     sys.exit(1)

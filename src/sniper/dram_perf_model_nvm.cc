@@ -41,18 +41,18 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    char ip[100];
 
    getHostnameByIP(hostname, ip);
-   printf("%s resolved to %s\n", hostname, ip);
+   printf("[NVMSIM] %s resolved to %s\n", hostname, ip);
 
    // socket create and varification
    client_socket = socket(AF_INET, SOCK_STREAM, 0);
    if (client_socket == -1)
    {
-      printf("socket creation failed...\n");
-      exit(0);
+      printf("[NVMSIM] socket creation failed...\n");
+      exit(-1);
    }
    else
    {
-      printf("Socket successfully created..\n");
+      printf("[NVMSIM] Socket successfully created..\n");
    }
    bzero(&servaddr, sizeof(servaddr));
 
@@ -64,12 +64,12 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    // connect the client socket to server socket
    if (connect(client_socket, (struct sockaddr *) &servaddr, sizeof(servaddr)) != 0)
    {
-      printf("connection with the server failed...\n");
-      exit(0);
+      printf("[NVMSIM] connection with the server failed...\n");
+      exit(-2);
    }
    else
    {
-      printf("connected to the server..\n");
+      printf("[NVMSIM] connected to the server..\n");
    }
 
    // function for chat
@@ -162,11 +162,11 @@ void DramPerfModelNVM::chat(int client_socket)
       write(client_socket, buffer, sizeof(buffer));
       bzero(buffer, sizeof(buffer));
       read(client_socket, buffer, sizeof(buffer));
-      printf("From Server : %s\n", buffer);
+      printf("[NVMSIM] From Server : %s\n", buffer);
    }
 
    bzero(buffer, sizeof(buffer));
    sprintf(buffer, "%s", "exit");
    write(client_socket, buffer, sizeof(buffer));
-   printf("Client Exit...\n");
+   printf("[NVMSIM] Client Exit...\n");
 } 

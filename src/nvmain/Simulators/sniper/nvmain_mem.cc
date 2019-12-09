@@ -42,12 +42,12 @@
  *
  */
 
-#include "SimInterface/Gem5Interface/Gem5Interface.h"
-#include "Simulators/gem5/nvmain_mem.hh"
+#include "SimInterface/SniperInterface/SniperInterface.h"
+#include "Simulators/sniper/nvmain_mem.hh"
 #include "Utils/HookFactory.h"
 
 #include "base/random.hh"
-#include "base/statistics.hh"
+//#include "base/statistics.hh"
 #include "debug/NVMain.hh"
 #include "debug/NVMainMin.hh"
 #include "config/the_isa.hh"
@@ -63,11 +63,13 @@ using namespace NVM;
 NVMainMemory *NVMainMemory::masterInstance = NULL;
 
 NVMainMemory::NVMainMemory(const Params *p)
-    : AbstractMemory(p), clockEvent(this), respondEvent(this),
+    : AbstractMemory(p), clockEvent(this), 
+      respondEvent(this),
       drainManager(NULL), lat(p->atomic_latency),
       lat_var(p->atomic_variance), nvmain_atomic(p->atomic_mode),
       NVMainWarmUp(p->NVMainWarmUp), port(name() + ".port", *this)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> NVMainMemory(const Params *p)\n");
     char *cfgparams;
     char *cfgvalues;
     char *cparam, *cvalue;
@@ -124,6 +126,7 @@ NVMainMemory::NVMainMemory(const Params *p)
 
 NVMainMemory::~NVMainMemory()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> ~NVMainMemory()\n");
     std::cout << "NVMain dtor called" << std::endl;
 }
 
@@ -131,6 +134,7 @@ NVMainMemory::~NVMainMemory()
 void
 NVMainMemory::init()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> init()\n");
     if (!port.isConnected()) {
         fatal("NVMainMemory %s is unconnected!\n", name());
     } else {
@@ -215,6 +219,7 @@ NVMainMemory::init()
 
 void NVMainMemory::startup()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> startup()\n");
     DPRINTF(NVMain, "NVMainMemory: startup() called.\n");
     DPRINTF(NVMainMin, "NVMainMemory: startup() called.\n");
 
@@ -232,6 +237,7 @@ void NVMainMemory::startup()
 
 void NVMainMemory::wakeup()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> wakeup()\n");
     DPRINTF(NVMain, "NVMainMemory: wakeup() called.\n");
     DPRINTF(NVMainMin, "NVMainMemory: wakeup() called.\n");
 
@@ -244,6 +250,7 @@ void NVMainMemory::wakeup()
 Port &
 NVMainMemory::getPort(const std::string& if_name, PortID idx)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> getPort(const std::string& if_name, PortID idx)\n");
     if (if_name != "port") {
         return AbstractMemory::getPort(if_name, idx);
     } else {
@@ -254,6 +261,7 @@ NVMainMemory::getPort(const std::string& if_name, PortID idx)
 
 void NVMainMemory::NVMainStatPrinter::process()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> NVMainStatPrinter::process()\n");
     assert(nvmainPtr != NULL);
 
     assert(curTick() >= memory->lastWakeup);
@@ -269,6 +277,7 @@ void NVMainMemory::NVMainStatPrinter::process()
 
 void NVMainMemory::NVMainStatReseter::process()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> NVMainStatReseter::process()\n");
     assert(nvmainPtr != NULL);
 
     nvmainPtr->ResetStats();
@@ -279,12 +288,14 @@ void NVMainMemory::NVMainStatReseter::process()
 NVMainMemory::MemoryPort::MemoryPort(const std::string& _name, NVMainMemory& _memory)
     : SlavePort(_name, &_memory), memory(_memory), forgdb(_memory)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::MemoryPort(const std::string& _name, NVMainMemory& _memory)\n");
 
 }
 
 
 AddrRangeList NVMainMemory::MemoryPort::getAddrRanges() const
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::getAddrRanges() const\n");
     AddrRangeList ranges;
     ranges.push_back(memory.getAddrRange());
     return ranges;
@@ -294,6 +305,7 @@ AddrRangeList NVMainMemory::MemoryPort::getAddrRanges() const
 void
 NVMainMemory::SetRequestData(NVMainRequest *request, PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> SetRequestData(NVMainRequest *request, PacketPtr pkt)\n");
     uint8_t *hostAddr;
 
     request->data.SetSize( pkt->getSize() );
@@ -351,6 +363,7 @@ NVMainMemory::SetRequestData(NVMainRequest *request, PacketPtr pkt)
 Tick
 NVMainMemory::MemoryPort::recvAtomic(PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::recvAtomic(PacketPtr pkt)\n");
     if (pkt->cacheResponding())
         return 0;
 
@@ -407,6 +420,7 @@ NVMainMemory::MemoryPort::recvAtomic(PacketPtr pkt)
 void
 NVMainMemory::MemoryPort::recvFunctional(PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::recvFunctional(PacketPtr pkt)\n");
     pkt->pushLabel(memory.name());
 
     memory.doFunctionalAccess(pkt);
@@ -418,6 +432,7 @@ NVMainMemory::MemoryPort::recvFunctional(PacketPtr pkt)
 bool
 NVMainMemory::MemoryPort::recvTimingReq(PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::recvTimingReq(PacketPtr pkt)\n");
     /* added by Tao @ 01/24/2013, just copy the code from SimpleMemory */
     /// @todo temporary hack to deal with memory corruption issues until
     /// 4-phase transactions are complete
@@ -625,6 +640,7 @@ NVMainMemory::MemoryPort::recvTimingReq(PacketPtr pkt)
 
 Tick NVMainMemory::doAtomicAccess(PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> doAtomicAccess(PacketPtr pkt)\n");
     access(pkt);
     return static_cast<Tick>(m_avgAtomicLatency);
 }
@@ -633,12 +649,14 @@ Tick NVMainMemory::doAtomicAccess(PacketPtr pkt)
 
 void NVMainMemory::doFunctionalAccess(PacketPtr pkt)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> doFunctionalAccess(PacketPtr pkt)\n");
     functionalAccess(pkt);
 }
 
 
 DrainState NVMainMemory::drain()
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> drain()\n");
     if( !masterInstance->m_request_map.empty() )
     {
         return DrainState::Draining;
@@ -652,18 +670,21 @@ DrainState NVMainMemory::drain()
 
 void NVMainMemory::MemoryPort::recvRespRetry( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::recvRespRetry( )\n");
     memory.recvRetry( );
 }
 
 
 void NVMainMemory::MemoryPort::recvRetry( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> MemoryPort::recvRetry( )\n");
     memory.recvRetry( );
 }
 
 
 void NVMainMemory::recvRetry( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> recvRetry( )\n");
     DPRINTF(NVMain, "NVMainMemory: recvRetry() called.\n");
     DPRINTF(NVMainMin, "NVMainMemory: recvRetry() called.\n");
 
@@ -674,6 +695,7 @@ void NVMainMemory::recvRetry( )
 
 bool NVMainMemory::RequestComplete(NVM::NVMainRequest *req)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> RequestComplete(NVM::NVMainRequest *req)\n");
     bool isRead = (req->type == READ || req->type == READ_PRECHARGE);
     bool isWrite = (req->type == WRITE || req->type == WRITE_PRECHARGE);
 
@@ -758,6 +780,7 @@ bool NVMainMemory::RequestComplete(NVM::NVMainRequest *req)
 
 void NVMainMemory::SendResponses( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> SendResponses( )\n");
     if( responseQueue.empty() || retryResp == true )
         return;
 
@@ -787,6 +810,7 @@ void NVMainMemory::SendResponses( )
 
 void NVMainMemory::CheckDrainState( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> CheckDrainState( )\n");
     if( drainManager != NULL && masterInstance->m_request_map.empty() )
     {
         DPRINTF(NVMain, "NVMainMemory: Drain completed.\n");
@@ -800,6 +824,7 @@ void NVMainMemory::CheckDrainState( )
 
 void NVMainMemory::ScheduleResponse( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> ScheduleResponse( )\n");
     if( !respondEvent.scheduled( ) )
         schedule(respondEvent, curTick() + clock);
 }
@@ -807,6 +832,7 @@ void NVMainMemory::ScheduleResponse( )
 
 void NVMainMemory::ScheduleClockEvent( Tick nextWake )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> ScheduleClockEvent( Tick nextWake )\n");
     if( !masterInstance->clockEvent.scheduled() )
         schedule(masterInstance->clockEvent, nextWake);
     else
@@ -816,6 +842,7 @@ void NVMainMemory::ScheduleClockEvent( Tick nextWake )
 
 void NVMainMemory::serialize(CheckpointOut &cp) const
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> serialize(CheckpointOut &cp) const\n");
     if (masterInstance != this)
         return;
 
@@ -835,6 +862,7 @@ void NVMainMemory::serialize(CheckpointOut &cp) const
 
 void NVMainMemory::unserialize(CheckpointIn &cp)
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> unserialize(CheckpointIn &cp)\n");
     if (masterInstance != this)
         return;
 
@@ -854,6 +882,7 @@ void NVMainMemory::unserialize(CheckpointIn &cp)
 
 void NVMainMemory::tick( )
 {
+    printf("[NVMSIM] nvmain_mem.cpp -> tick( )\n");
     // Cycle memory controller
     if (masterInstance == this)
     {

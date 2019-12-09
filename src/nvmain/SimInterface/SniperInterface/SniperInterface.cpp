@@ -1,16 +1,4 @@
 #include "SimInterface/SniperInterface/SniperInterface.h"
-#include "base/statistics.hh"
-#include "base/types.hh"
-#include "base/stats/info.hh"
-#include "sim/core.hh"
-#include "sim/stat_control.hh"
-#include "mem/ruby/system/RubySystem.hh"
-#include "mem/ruby/profiler/Profiler.hh"
-#include "mem/ruby/network/Network.hh"
-#include "mem/ruby/network/Topology.hh"
-#include <sstream>
-#include <list>
-#include <stdlib.h>
 
 using namespace NVM;
 

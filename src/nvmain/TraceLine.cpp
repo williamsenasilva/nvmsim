@@ -37,7 +37,7 @@ using namespace NVM;
 
 TraceLine::TraceLine( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> TraceLine( )\n");
+    printf("[NVMSIM] [TraceLine.cpp] TraceLine( )\n");
     /*
      *  Set the address to some default bad value so it is not read by
      *  the memory simulator before it is set by the trace reader.
@@ -50,14 +50,20 @@ TraceLine::TraceLine( )
 
 TraceLine::~TraceLine( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> ~TraceLine( )\n");
+    printf("[NVMSIM] [TraceLine.cpp] ~TraceLine( )\n");
     /* There is no heap memory to free. Do nothing. */
 }
 
 /* Set the values of the address and memory operation. */
 void TraceLine::SetLine( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )
 {
-    printf("[NVMSIM] TraceLine.cpp -> SetLine( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )\n");
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- ( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )\n");
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- address: %lld\n", (long long) addr.GetPhysicalAddress());
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- operation: %d\n", op);
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- cycle: %lld\n", (long long) cy);
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- data: %lld\n", (long long) data.GetSize());
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- oldData: %lld\n", (long long)oldData.GetSize());
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- threadId: %lld\n", (long long) threadId);
     this->address = addr;
     this->operation = op;
     this->cycle = cy;
@@ -69,37 +75,31 @@ void TraceLine::SetLine( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock&
 /* Get the address of the memory operation. */
 NVMAddress& TraceLine::GetAddress( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetAddress( )\n");
     return address;
 }
 
 /* Get the memory command of the operation. */
 OpType TraceLine::GetOperation( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetOperation( )\n");
     return operation;
 }
 
 ncycle_t TraceLine::GetCycle( ) 
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetCycle( ) \n");
     return cycle;
 }
 
 NVMDataBlock& TraceLine::GetData( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetData( )\n");
     return data;
 }
 
 NVMDataBlock& TraceLine::GetOldData( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetOldData( )\n");
     return oldData;
 }
 
 ncounters_t TraceLine::GetThreadId( )
 {
-    printf("[NVMSIM] TraceLine.cpp -> GetThreadId( )\n");
     return threadId;
 }

@@ -48,7 +48,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    if (client_socket == -1)
    {
       printf("[NVMSIM] socket creation failed...\n");
-      exit(-1);
+      // exit(-1);
    }
    else
    {
@@ -65,7 +65,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    if (connect(client_socket, (struct sockaddr *) &servaddr, sizeof(servaddr)) != 0)
    {
       printf("[NVMSIM] connection with the server failed...\n");
-      exit(-2);
+      // exit(-2);
    }
    else
    {
@@ -73,7 +73,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    }
 
    // function for chat
-   chat(client_socket);
+   // chat(client_socket);
 
    // close the socket
    close(client_socket);
@@ -90,6 +90,12 @@ DramPerfModelNVM::~DramPerfModelNVM()
 
 SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
 {
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...)\n");
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {pkt_time: %"PRIu64"ns}\n", pkt_time.getNS());
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {pkt_size: %d}\n", pkt_size);
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {requester: %d}\n", requester);
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {address: %p}\n", address);
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {access_type: %d}\n", access_type);
    // pkt_size is in 'Bytes'
    // m_dram_bandwidth is in 'Bits per clock cycle'
    if ((!m_enabled) || (requester >= (core_id_t) Config::getSingleton()->getApplicationCores()))
@@ -98,19 +104,23 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    }
 
    SubsecondTime processing_time = m_dram_bandwidth.getRoundedLatency(8 * pkt_size); // bytes to bits
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {processing_time: %"PRIu64"ns}\n", processing_time.getNS());
 
    // Compute Queue Delay
    SubsecondTime queue_delay;
    if (m_queue_model)
    {
       queue_delay = m_queue_model->computeQueueDelay(pkt_time, processing_time, requester);
+      printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {queue_delay: %"PRIu64"ns}\n", queue_delay.getNS());
    }
    else
    {
       queue_delay = SubsecondTime::Zero();
+      printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {queue_delay: %"PRIu64"ns}\n", queue_delay.getNS());
    }
 
    SubsecondTime access_latency = queue_delay + processing_time + m_dram_access_cost;
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {access_latency: %"PRIu64"ns}\n", access_latency.getNS());
 
    perf->updateTime(pkt_time);
    perf->updateTime(pkt_time + queue_delay, ShmemPerf::DRAM_QUEUE);
@@ -119,10 +129,13 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
 
    // Update Memory Counters
    m_num_accesses++;
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {m_num_accesses: %"PRIu64"}\n", m_num_accesses);
    m_total_access_latency += access_latency;
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {m_total_access_latency: %"PRIu64"ns}\n", m_total_access_latency.getNS());
    m_total_queueing_delay += queue_delay;
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) {m_total_queueing_delay: %"PRIu64"ns}\n", m_total_queueing_delay.getNS());
 
-   printf("[NVMSIM] {num_accesses,access_latency,total_access_latency}: %"PRIu64",%"PRIu64"ns,%"PRIu64"ns\n", m_num_accesses, access_latency.getNS(), m_total_access_latency.getNS());
+   printf("[NVMSIM] \n");
    return access_latency;
 }
 

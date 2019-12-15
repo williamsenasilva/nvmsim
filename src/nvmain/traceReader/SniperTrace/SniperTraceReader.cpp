@@ -1,37 +1,4 @@
-/*******************************************************************************
-* Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
-* Department of Computer Science and Engineering, The Pennsylvania State University
-* All rights reserved.
-* 
-* This source code is part of NVMain - A cycle accurate timing, bit accurate
-* energy simulator for both volatile (e.g., DRAM) and non-volatile memory
-* (e.g., PCRAM). The source code is free and you can redistribute and/or
-* modify it by providing that the following conditions are met:
-* 
-*  1) Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer.
-* 
-*  2) Redistributions in binary form must reproduce the above copyright notice,
-*     this list of conditions and the following disclaimer in the documentation
-*     and/or other materials provided with the distribution.
-* 
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-* Author list: 
-*   Matt Poremba    ( Email: mrp5060 at psu dot edu 
-*                     Website: http://www.cse.psu.edu/~poremba/ )
-*******************************************************************************/
-
-#include "traceReader/NVMainTrace/NVMainTraceReader.h"
+#include "traceReader/SniperTrace/SniperTraceReader.h"
 #include <sstream>
 #include <cstdlib>
 #include <cassert>
@@ -40,32 +7,32 @@
 
 using namespace NVM;
 
-NVMainTraceReader::NVMainTraceReader( )
+SniperTraceReader::SniperTraceReader( )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> NVMainTraceReader( )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] SniperTraceReader( )\n");
     traceFile = "";
 
     traceVersion = 0;
     readVersion = false;
 }
 
-NVMainTraceReader::~NVMainTraceReader( )
+SniperTraceReader::~SniperTraceReader( )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> ~NVMainTraceReader( )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] ~SniperTraceReader( )\n");
     if( trace.is_open( ) )
         trace.close( );
 }
 
-void NVMainTraceReader::SetTraceFile( std::string file )
+void SniperTraceReader::SetTraceFile( std::string file )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> SetTraceFile( std::string file )\n");
-    printf("[NVMSIM] NVMainTraceReader.cpp -> SetTraceFile( std::string file ) - {traceFile: %s}\n", file.c_str());
+    printf("[NVMSIM] [SniperTraceReader.cpp] SetTraceFile( std::string file )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] SetTraceFile( std::string file ) - {traceFile: %s}\n", file.c_str());
     traceFile = file;
 }
 
-std::string NVMainTraceReader::GetTraceFile( )
+std::string SniperTraceReader::GetTraceFile( )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> GetTraceFile( )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetTraceFile( )\n");
     return traceFile;
 }
 
@@ -74,14 +41,15 @@ std::string NVMainTraceReader::GetTraceFile( )
  *
  *  CYCLE OP ADDRESS DATA THREADID
  */
-bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
+bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextAccess( TraceLine *nextAccess )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...)\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - (...) -> ( TraceLine *nextAccess )\n");
     /* If there is no trace file, we can't do anything. */
     if( traceFile == "" )
     {
         std::cerr << "No trace file specified!" << std::endl;
-        printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextAccess( TraceLine *nextAccess ) - No trace file specified! - return false\n");
+        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - No trace file specified! - return false\n");
         return false;
     }
 
@@ -92,7 +60,7 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
         if( !trace.is_open( ) )
         {
             std::cerr << "Could not open trace file: " << traceFile << "!" << std::endl;
-            printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextAccess( TraceLine *nextAccess ) - Could not open trace file - return false\n");
+            printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - Could not open trace file - return false\n");
             return false;
         }
     }
@@ -114,8 +82,8 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
         NVMAddress nAddress;
         nAddress.SetPhysicalAddress( 0xDEADC0DEDEADBEEFULL );
         nextAccess->SetLine( nAddress, NOP, 0, dataBlock, oldDataBlock, 0 );
-        std::cout << "NVMainTraceReader: Reached EOF!" << std::endl;
-        printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextAccess( TraceLine *nextAccess ) - Reached EOF! - return false\n");
+        std::cout << "SniperTraceReader: Reached EOF!" << std::endl;
+        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - Reached EOF! - return false\n");
         return false;
     }
 
@@ -244,7 +212,7 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
     linenum++;
 
     if( operation != READ && operation != WRITE )
-        std::cout << "NVMainTraceReader: Unknown Operation: " << operation << "Line number is " << linenum << ". Full Line is \"" << fullLine << "\"" << std::endl;
+        std::cout << "SniperTraceReader: Unknown Operation: " << operation << "Line number is " << linenum << ". Full Line is \"" << fullLine << "\"" << std::endl;
 
     /*
      *  Set the line parameters.
@@ -252,10 +220,10 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
     NVMAddress nAddress;
 
     nAddress.SetPhysicalAddress( address );
-
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - linenum: %d\n", linenum);
     nextAccess->SetLine( nAddress, operation, cycle, dataBlock, oldDataBlock, threadId );
 
-    printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextAccess( TraceLine *nextAccess ) - return true\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - return true\n");
     return true;
 }
 
@@ -263,9 +231,9 @@ bool NVMainTraceReader::GetNextAccess( TraceLine *nextAccess )
  * Get the next N accesses to main memory. Called GetNextAccess N times and 
  * places the return values into a vector of TraceLine pointers.
  */
-int NVMainTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )
+int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )
 {
-    printf("[NVMSIM] NVMainTraceReader.cpp -> GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )\n");
+    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )\n");
     int successes;
     class TraceLine *nextLine;
 

@@ -57,34 +57,45 @@ using namespace NVM;
 
 int main( int argc, char *argv[] )
 {
+    printf("[NVMSIM] [traceMain.cpp] int main(...) -> ( int argc, char *argv[] )\n");
+    for(int i = 0; i < argc; i++)
+        printf("[NVMSIM] [traceMain.cpp] int main(...) - argv[%d/%d]: %s\n", i+1, argc, argv[i]);
+    printf("[NVMSIM] [traceMain.cpp] int main(...) - TraceMain *traceRunner = new TraceMain( )\n");
     TraceMain *traceRunner = new TraceMain( );
-
+    printf("[NVMSIM] [traceMain.cpp] int main(...) - return traceRunner->RunTrace( argc, argv )\n");
     return traceRunner->RunTrace( argc, argv );
 }
 
 TraceMain::TraceMain( )
 {
-    printf("[NVMSIM] traceMain.cpp -> TraceMain( )\n");
-
+    printf("[NVMSIM] [traceMain.cpp] TraceMain( )\n");
 }
 
 TraceMain::~TraceMain( )
 {
-    printf("[NVMSIM] traceMain.cpp -> ~TraceMain( )\n");
-
+    printf("[NVMSIM] [traceMain.cpp] ~TraceMain( )\n");
 }
 
 int TraceMain::RunTrace( int argc, char *argv[] )
 {
-    printf("[NVMSIM] traceMain.cpp -> RunTrace( int argc, char *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) -> ( int argc, char *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Stats *stats = new Stats( )\n");
     Stats *stats = new Stats( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Config *config = new Config( )\n");
     Config *config = new Config( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - GenericTraceReader *trace = NULL\n");
     GenericTraceReader *trace = NULL;
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - TraceLine *tl = new TraceLine( )\n");
     TraceLine *tl = new TraceLine( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - SimInterface *simInterface = new NullInterface( )\n");
     SimInterface *simInterface = new NullInterface( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - NVMain *nvmain = new NVMain( )\n");
     NVMain *nvmain = new NVMain( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - EventQueue *mainEventQueue = new EventQueue( )\n");
     EventQueue *mainEventQueue = new EventQueue( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - GlobalEventQueue *globalEventQueue = new GlobalEventQueue( )\n");
     GlobalEventQueue *globalEventQueue = new GlobalEventQueue( );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - TagGenerator *tagGenerator = new TagGenerator( 1000 )\n");
     TagGenerator *tagGenerator = new TagGenerator( 1000 );
     bool IgnoreData = false;
 
@@ -105,6 +116,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     }
     std::cout << std::endl << std::endl;
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - configuring and setting values\n");
     config->Read( argv[1] );
     config->SetSimInterface( simInterface );
     SetEventQueue( mainEventQueue );
@@ -113,6 +125,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     SetTagGenerator( tagGenerator );
     std::ofstream statStream;
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking args\n");
     /* Allow for overriding config parameter values for trace simulations from command line. */
     if( argc > 4 )
     {
@@ -130,10 +143,10 @@ int TraceMain::RunTrace( int argc, char *argv[] )
         }
     }
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking KeyExists\n");
     if( config->KeyExists( "StatsFile" ) )
     {
-        statStream.open( config->GetString( "StatsFile" ).c_str(), 
-                         std::ofstream::out | std::ofstream::app );
+        statStream.open( config->GetString( "StatsFile" ).c_str(), std::ofstream::out | std::ofstream::app );
     }
 
     if( config->KeyExists( "IgnoreData" ) && config->GetString( "IgnoreData" ) == "true" )
@@ -163,13 +176,18 @@ int TraceMain::RunTrace( int argc, char *argv[] )
         }
     }
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - AddChild( nvmain )\n");
     AddChild( nvmain );
     nvmain->SetParent( this );
 
     globalEventQueue->SetFrequency( config->GetEnergy( "CPUFreq" ) * 1000000.0 );
     globalEventQueue->AddSystem( nvmain, config );
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simInterface->SetConfig( config, true )\n");
     simInterface->SetConfig( config, true );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simInterface->GetCacheMisses(): %d\n", simInterface->GetCacheMisses(10, 20));
+
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )\n");
     nvmain->SetConfig( config, "defaultMemory", true );
 
     std::cout << "traceMain (" << (void*)(this) << ")" << std::endl;
@@ -188,6 +206,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     else
         simulateCycles = atoi( argv[3] );
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
     std::cout << "*** Simulating " << simulateCycles << " input cycles. (";
 
     /*
@@ -198,10 +217,13 @@ int TraceMain::RunTrace( int argc, char *argv[] )
                     / (double)(config->GetValue( "CLK" ))) * simulateCycles ); 
 
     std::cout << simulateCycles << " memory cycles) ***" << std::endl;
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
 
     currentCycle = 0;
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %lld\n", (long long) simulateCycles);
     while( currentCycle <= simulateCycles || simulateCycles == 0 )
     {
+        printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - trace->GetNextAccess( tl )\n");
         if( !trace->GetNextAccess( tl ) )
         {
             /* Force all modules to drain requests. */
@@ -309,18 +331,17 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     delete config;
     delete stats;
 
-    return 0;
+    return -3;
 }
 
 void TraceMain::Cycle( ncycle_t /*steps*/ )
 {
-    printf("[NVMSIM] traceMain.cpp -> Cycle( ncycle_t /*steps*/ )\n");
-
+    printf("[NVMSIM] [traceMain.cpp] Cycle( ncycle_t /*steps*/ )\n");
 }
 
 bool TraceMain::RequestComplete( NVMainRequest* request )
 {
-    printf("[NVMSIM] traceMain.cpp -> RequestComplete( NVMainRequest* request )\n");
+    printf("[NVMSIM] [traceMain.cpp] RequestComplete( NVMainRequest* request )\n");
     /* This is the top-level module, so there are no more parents to fallback. */
     assert( request->owner == this );
 

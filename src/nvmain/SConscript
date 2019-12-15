@@ -59,17 +59,17 @@ NVMainSource('MemControl/MemoryControllerFactory.cpp')
 NVMainSource('traceReader/TraceLine.cpp')
 
 if "NVMSIM" in os.environ:
-    print "[NVMSIM] simulator is {}".format(os.environ["NVMSIM"])
-    # NVMainSource('SimInterface/SniperInterface/SniperInterface.h')
-    # NVMainSource('SimInterface/SniperInterface/SniperInterface.cpp')
+    print("[NVMSIM] [SConscript] simulator is {}".format(os.environ["NVMSIM"]))
 
+    #TODO: substituir o uso deste arquivos 
     NVMainSource('traceSim/traceMain.cpp')
-
+    
     NVMainSource('traceReader/TraceReaderFactory.cpp')
     NVMainSource('traceReader/RubyTrace/RubyTraceReader.cpp')
     NVMainSource('traceReader/NVMainTrace/NVMainTraceReader.cpp')
+    NVMainSource('traceReader/SniperTrace/SniperTraceReader.cpp')
 elif 'NVMAIN_BUILD' in env:
-    print "[NVMSIM] simulator is nvmain"
+    print("[NVMSIM] [SConscript] simulator is nvmain")
     # NVMain build.
     NVMainSource('traceSim/traceMain.cpp')
 
@@ -78,7 +78,7 @@ elif 'NVMAIN_BUILD' in env:
     NVMainSource('traceReader/NVMainTrace/NVMainTraceReader.cpp')
 
 elif 'TARGET_ISA' in env:
-    print "[NVMSIM] simulator is gem5"
+    print("[NVMSIM] [SConscript] simulator is gem5")
     # Assume that this is a gem5 extras build if this is set.
     NVMainSource('SimInterface/Gem5Interface/Gem5Interface.cpp')
 
@@ -97,11 +97,11 @@ elif 'TARGET_ISA' in env:
 
     MakeInclude('SimInterface/Gem5Interface/Gem5Interface.h')
 elif "NVMAINPATH" in os.environ:
-    print "[NVMSIM] simulator is Zsim"
+    print("[NVMSIM] [SConscript] simulator is Zsim")
     # Assume that this is a Zsim build if this is set.
     # Nothing to be done here for now.
     pass
 else:
-    print "ERROR: What kind of build is this?"
+    print("ERROR: What kind of build is this?")
     sys.exit(1)
 

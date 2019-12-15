@@ -37,12 +37,14 @@
 /* Add your trace reader's include below. */
 #include "traceReader/NVMainTrace/NVMainTraceReader.h"
 #include "traceReader/RubyTrace/RubyTraceReader.h"
+#include "traceReader/SniperTrace/SniperTraceReader.h"
 
 using namespace NVM;
 
 GenericTraceReader *TraceReaderFactory::CreateNewTraceReader( std::string reader )
 {
-    printf("[NVMSIM] TraceReaderFactory.cpp -> CreateNewTraceReader( std::string reader )\n");
+    printf("[NVMSIM] [TraceReaderFactory.cpp] CreateNewTraceReader(...) -> ( std::string reader )\n");
+    printf("[NVMSIM] [TraceReaderFactory.cpp] CreateNewTraceReader(...) - reader: %s\n", reader.c_str());
     GenericTraceReader *tracer = NULL;
 
     if( reader == "" )
@@ -53,6 +55,8 @@ GenericTraceReader *TraceReaderFactory::CreateNewTraceReader( std::string reader
         tracer = new NVMainTraceReader( );
     else if( reader == "RubyTrace" )
         tracer = new RubyTraceReader( );
+    else if( reader == "SniperTrace" )
+        tracer = new SniperTraceReader( );
 
     if( tracer == NULL )
         std::cout << "NVMain: Unknown trace reader `" << reader << "'." 

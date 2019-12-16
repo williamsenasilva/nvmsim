@@ -58,7 +58,7 @@ TraceLine::~TraceLine( )
 void TraceLine::SetLine( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )
 {
     printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- ( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )\n");
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- address: %lld\n", (long long) addr.GetPhysicalAddress());
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- address: %lld\n", (long long) addr.GetBitAddress());
     printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- operation: %d\n", op);
     printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- cycle: %lld\n", (long long) cy);
     printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- data: %lld\n", (long long) data.GetSize());

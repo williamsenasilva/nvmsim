@@ -19,7 +19,9 @@ class SniperTraceReader : public GenericTraceReader
     
     bool GetNextAccess( TraceLine *nextAccess );
     int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
-  
+    
+    int getHostnameByIP(char* hostname, char* ip);
+    void chat(int client_socket);
   private:
     std::string traceFile;
     std::ifstream trace;

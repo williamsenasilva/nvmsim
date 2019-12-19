@@ -30,12 +30,13 @@ SniperTraceReader::SniperTraceReader( )
     traceVersion = 0;
     readVersion = false;
 
-    int server_socket, server_connection, len; 
-    struct sockaddr_in servaddr, client; 
+    int nvmain_socket, nvmain_connection; 
+    struct sockaddr_in nvmain_address, sniper_address; 
+    socklen_t sniper_len;
 
     // socket create and verification 
-    server_socket = socket(AF_INET, SOCK_STREAM, 0); 
-    if (server_socket == -1) 
+    nvmain_socket = socket(AF_INET, SOCK_STREAM, 0); 
+    if (nvmain_socket == -1) 
     { 
         printf("socket creation failed...\n"); 
         exit(0); 
@@ -45,50 +46,51 @@ SniperTraceReader::SniperTraceReader( )
         printf("Socket successfully created..\n"); 
     }
     
-    bzero(&servaddr, sizeof(servaddr)); 
+    bzero(&nvmain_address, sizeof(nvmain_address)); 
 
     // assign IP, PORT 
-    servaddr.sin_family = AF_INET; 
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY); 
-    servaddr.sin_port = htons(PORT); 
+    nvmain_address.sin_family = AF_INET; 
+    nvmain_address.sin_addr.s_addr = htonl(INADDR_ANY); 
+    nvmain_address.sin_port = htons(PORT); 
 
     // Binding newly created socket to given IP and verification 
-    if ((bind(server_socket, (struct sockaddr*) &servaddr, sizeof(servaddr))) != 0) { 
+    if ((bind(nvmain_socket, (struct sockaddr*) &nvmain_address, sizeof(nvmain_address))) != 0) { 
         printf("socket bind failed...\n"); 
         exit(0); 
     } 
     else
         printf("Socket successfully binded..\n"); 
 
-    // Now server is ready to listen and verification 
-    if ((listen(server_socket, 5)) != 0) 
+    // Now nvmain is ready to listen and verification 
+    if ((listen(nvmain_socket, 5)) != 0) 
     { 
         printf("Listen failed...\n"); 
         exit(0); 
     } 
     else
     {
-        printf("Server listening..\n"); 
+        printf("NVMain listening..\n"); 
     }
-    len = sizeof(client); 
 
-    // Accept the data packet from client and verification 
-    server_connection = accept(server_socket, (struct sockaddr*) &client, &len); 
-    if (server_connection < 0) 
+    sniper_len = sizeof(sniper_address);
+
+    // Accept the data packet from sniper and verification 
+    nvmain_connection = accept(nvmain_socket, (struct sockaddr*) &sniper_address, &sniper_len); 
+    if (nvmain_connection < 0) 
     { 
-        printf("server acccept failed...\n"); 
+        printf("nvmain acccept failed...\n"); 
         exit(0); 
     } 
     else
     {
-        printf("server acccept the client...\n"); 
+        printf("nvmain acccept the sniper...\n"); 
     }
 
-    // Function for chatting between client and server 
-    chat(server_connection); 
+    // Function for chatting between sniper and nvmain 
+    chat(nvmain_connection); 
 
     // After chatting close the socket 
-    close(server_socket); 
+    close(nvmain_socket); 
 
 }
 
@@ -334,3 +336,64 @@ int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *
 
     return successes;
 }
+
+int SniperTraceReader::getHostnameByIP(char *hostname, char *ip)
+{
+   printf("[NVMSIM] [SniperTraceReader.cpp] getHostnameByIP(...) <- (char *hostname, char *ip)\n");
+   struct hostent *he;
+   struct in_addr **addr_list;
+   int i;
+
+   if ((he = gethostbyname(hostname)) == NULL)
+   {
+      // get the host info
+      herror("gethostbyname");
+      return 1;
+   }
+
+   addr_list = (struct in_addr **) he->h_addr_list;
+
+   for (i = 0; addr_list[i] != NULL; i++)
+   {
+      //Return the first one;
+      strcpy(ip, inet_ntoa(*addr_list[i]));
+      return 0;
+   }
+
+   return 1;
+}
+
+void SniperTraceReader::chat(int sniper_socket)
+{
+   printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) <- (int sniper_socket)\n");
+   char buffer[MAX];
+   int write_res, read_res;
+   for (int calls = 1; calls <= 100; calls++)
+   {
+      bzero(buffer, sizeof(buffer));
+      sprintf(buffer, "%d", calls);
+      write_res = write(sniper_socket, buffer, sizeof(buffer));
+      if(write_res) 
+      {
+         bzero(buffer, sizeof(buffer));
+         read_res = read(sniper_socket, buffer, sizeof(buffer));
+         if(read_res)
+         {
+            printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - from NVMain : %s\n", buffer);
+         }
+         else
+         {
+            printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - error on read event\n");
+         }
+      }
+      else
+      {
+         printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - error on write event\n");
+      }
+   }
+
+   bzero(buffer, sizeof(buffer));
+   sprintf(buffer, "%s", "exit");
+   write_res = write(sniper_socket, buffer, sizeof(buffer));
+   printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - sniper Exit...\n");
+} 

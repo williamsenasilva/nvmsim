@@ -35,8 +35,8 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    registerStatsMetric("dram", core_id, "total-queueing-delay", &m_total_queueing_delay);
    printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - memory type NVM started\n");
 
-   int client_socket;
-   struct sockaddr_in servaddr;
+   int sniper_socket;
+   struct sockaddr_in nvmain_address;
 
    char hostname[] = "nvmain";
    char ip[100];
@@ -45,8 +45,8 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - %s resolved to %s\n", hostname, ip);
 
    // socket create and varification
-   client_socket = socket(AF_INET, SOCK_STREAM, 0);
-   if (client_socket == -1)
+   sniper_socket = socket(AF_INET, SOCK_STREAM, 0);
+   if (sniper_socket == -1)
    {
       printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - socket creation failed...\n");
       // exit(-1);
@@ -55,29 +55,29 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    {
       printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - socket successfully created..\n");
    }
-   bzero(&servaddr, sizeof(servaddr));
+   bzero(&nvmain_address, sizeof(nvmain_address));
 
    // assign IP, PORT
-   servaddr.sin_family = AF_INET;
-   servaddr.sin_addr.s_addr = inet_addr(ip);
-   servaddr.sin_port = htons(PORT);
+   nvmain_address.sin_family = AF_INET;
+   nvmain_address.sin_addr.s_addr = inet_addr(ip);
+   nvmain_address.sin_port = htons(PORT);
 
-   // connect the client socket to server socket
-   if (connect(client_socket, (struct sockaddr *) &servaddr, sizeof(servaddr)) != 0)
+   // connect the sniper socket to nvmain socket
+   if (connect(sniper_socket, (struct sockaddr *) &nvmain_address, sizeof(nvmain_address)) != 0)
    {
-      printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - connection with the server failed...\n");
+      printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - connection with the nvmain failed...\n");
       // exit(-2);
    }
    else
    {
-      printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - connected to the server..\n");
+      printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) - connected to the nvmain..\n");
    }
 
    // function for chat
-   // chat(client_socket);
+   // chat(sniper_socket);
 
    // close the socket
-   close(client_socket);
+   close(sniper_socket);
 }
 
 DramPerfModelNVM::~DramPerfModelNVM()
@@ -166,20 +166,20 @@ int DramPerfModelNVM::getHostnameByIP(char *hostname, char *ip)
    return 1;
 }
 
-void DramPerfModelNVM::chat(int client_socket)
+void DramPerfModelNVM::chat(int sniper_socket)
 {
-   printf("[NVMSIM] [dram_perf_model_nvm.cpp] chat(...) <- (int client_socket)\n");
+   printf("[NVMSIM] [dram_perf_model_nvm.cpp] chat(...) <- (int sniper_socket)\n");
    char buffer[MAX];
    int write_res, read_res;
    for (int calls = 1; calls <= 100; calls++)
    {
       bzero(buffer, sizeof(buffer));
       sprintf(buffer, "%d", calls);
-      write_res = write(client_socket, buffer, sizeof(buffer));
+      write_res = write(sniper_socket, buffer, sizeof(buffer));
       if(write_res) 
       {
          bzero(buffer, sizeof(buffer));
-         read_res = read(client_socket, buffer, sizeof(buffer));
+         read_res = read(sniper_socket, buffer, sizeof(buffer));
          if(read_res)
          {
             printf("[NVMSIM] [dram_perf_model_nvm.cpp] chat(...) - from Server : %s\n", buffer);
@@ -198,6 +198,6 @@ void DramPerfModelNVM::chat(int client_socket)
 
    bzero(buffer, sizeof(buffer));
    sprintf(buffer, "%s", "exit");
-   write_res = write(client_socket, buffer, sizeof(buffer));
-   printf("[NVMSIM] [dram_perf_model_nvm.cpp] chat(...) - client Exit...\n");
+   write_res = write(sniper_socket, buffer, sizeof(buffer));
+   printf("[NVMSIM] [dram_perf_model_nvm.cpp] chat(...) - sniper Exit...\n");
 } 

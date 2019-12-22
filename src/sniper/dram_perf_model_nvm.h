@@ -15,8 +15,11 @@ private:
     ComponentBandwidth m_dram_bandwidth;
     SubsecondTime m_total_queueing_delay;
     SubsecondTime m_total_access_latency;
-    int getHostnameByIP(char* hostname, char* ip);
-    void chat(int client_socket);
+    int sniper_socket;
+    bool StartNVMainCommunication();
+    bool FinishNVMainCommunication();
+    int GetHostnameByIP(char* hostname, char* ip);
+    void Chat();
 public:
     DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size);
     ~DramPerfModelNVM();

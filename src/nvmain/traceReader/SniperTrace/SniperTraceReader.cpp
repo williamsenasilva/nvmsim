@@ -1,10 +1,41 @@
+/*******************************************************************************
+* Copyright (c) 2012-2014, The Microsystems Design Labratory (MDL)
+* Department of Computer Science and Engineering, The Pennsylvania State University
+* All rights reserved.
+* 
+* This source code is part of Sniper - A cycle accurate timing, bit accurate
+* energy simulator for both volatile (e.g., DRAM) and non-volatile memory
+* (e.g., PCRAM). The source code is free and you can redistribute and/or
+* modify it by providing that the following conditions are met:
+* 
+*  1) Redistributions of source code must retain the above copyright notice,
+*     this list of conditions and the following disclaimer.
+* 
+*  2) Redistributions in binary form must reproduce the above copyright notice,
+*     this list of conditions and the following disclaimer in the documentation
+*     and/or other materials provided with the distribution.
+* 
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+* ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* 
+* Author list: 
+*   Matt Poremba    ( Email: mrp5060 at psu dot edu 
+*                     Website: http://www.cse.psu.edu/~poremba/ )
+*******************************************************************************/
+
 #include "traceReader/SniperTrace/SniperTraceReader.h"
 #include <sstream>
 #include <cstdlib>
 #include <cassert>
 #include <cstring>
-
-
 #include <unistd.h>
 #include <stdio.h> 
 #include <netdb.h> 
@@ -29,69 +60,7 @@ SniperTraceReader::SniperTraceReader( )
 
     traceVersion = 0;
     readVersion = false;
-
-    int nvmain_socket, nvmain_connection; 
-    struct sockaddr_in nvmain_address, sniper_address; 
-    socklen_t sniper_len;
-
-    // socket create and verification 
-    nvmain_socket = socket(AF_INET, SOCK_STREAM, 0); 
-    if (nvmain_socket == -1) 
-    { 
-        printf("socket creation failed...\n"); 
-        exit(0); 
-    } 
-    else 
-    {
-        printf("Socket successfully created..\n"); 
-    }
-    
-    bzero(&nvmain_address, sizeof(nvmain_address)); 
-
-    // assign IP, PORT 
-    nvmain_address.sin_family = AF_INET; 
-    nvmain_address.sin_addr.s_addr = htonl(INADDR_ANY); 
-    nvmain_address.sin_port = htons(PORT); 
-
-    // Binding newly created socket to given IP and verification 
-    if ((bind(nvmain_socket, (struct sockaddr*) &nvmain_address, sizeof(nvmain_address))) != 0) { 
-        printf("socket bind failed...\n"); 
-        exit(0); 
-    } 
-    else
-        printf("Socket successfully binded..\n"); 
-
-    // Now nvmain is ready to listen and verification 
-    if ((listen(nvmain_socket, 5)) != 0) 
-    { 
-        printf("Listen failed...\n"); 
-        exit(0); 
-    } 
-    else
-    {
-        printf("NVMain listening..\n"); 
-    }
-
-    sniper_len = sizeof(sniper_address);
-
-    // Accept the data packet from sniper and verification 
-    nvmain_connection = accept(nvmain_socket, (struct sockaddr*) &sniper_address, &sniper_len); 
-    if (nvmain_connection < 0) 
-    { 
-        printf("nvmain acccept failed...\n"); 
-        exit(0); 
-    } 
-    else
-    {
-        printf("nvmain acccept the sniper...\n"); 
-    }
-
-    // Function for chatting between sniper and nvmain 
-    chat(nvmain_connection); 
-
-    // After chatting close the socket 
-    close(nvmain_socket); 
-
+    StartSniperCommunication();
 }
 
 SniperTraceReader::~SniperTraceReader( )
@@ -103,14 +72,11 @@ SniperTraceReader::~SniperTraceReader( )
 
 void SniperTraceReader::SetTraceFile( std::string file )
 {
-    printf("[NVMSIM] [SniperTraceReader.cpp] SetTraceFile( std::string file )\n");
-    printf("[NVMSIM] [SniperTraceReader.cpp] SetTraceFile( std::string file ) - {traceFile: %s}\n", file.c_str());
     traceFile = file;
 }
 
 std::string SniperTraceReader::GetTraceFile( )
 {
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetTraceFile( )\n");
     return traceFile;
 }
 
@@ -121,13 +87,10 @@ std::string SniperTraceReader::GetTraceFile( )
  */
 bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
 {
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...)\n");
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - (...) -> ( TraceLine *nextAccess )\n");
     /* If there is no trace file, we can't do anything. */
     if( traceFile == "" )
     {
         std::cerr << "No trace file specified!" << std::endl;
-        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - No trace file specified! - return false\n");
         return false;
     }
 
@@ -138,9 +101,14 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
         if( !trace.is_open( ) )
         {
             std::cerr << "Could not open trace file: " << traceFile << "!" << std::endl;
-            printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - Could not open trace file - return false\n");
             return false;
         }
+    }
+
+    if( !nvmain_socket )
+    {
+        printf("[NVMSIM] [SniperTraceReader.cpp] SniperTraceReader( ) - reopen nvmain socket\n");
+        StartSniperCommunication();
     }
 
     std::string fullLine;
@@ -161,7 +129,6 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
         nAddress.SetPhysicalAddress( 0xDEADC0DEDEADBEEFULL );
         nextAccess->SetLine( nAddress, NOP, 0, dataBlock, oldDataBlock, 0 );
         std::cout << "SniperTraceReader: Reached EOF!" << std::endl;
-        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess( TraceLine *nextAccess ) - Reached EOF! - return false\n");
         return false;
     }
 
@@ -290,7 +257,9 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     linenum++;
 
     if( operation != READ && operation != WRITE )
-        std::cout << "SniperTraceReader: Unknown Operation: " << operation << "Line number is " << linenum << ". Full Line is \"" << fullLine << "\"" << std::endl;
+        std::cout << "SniperTraceReader: Unknown Operation: " << operation 
+            << "Line number is " << linenum << ". Full Line is \"" << fullLine 
+            << "\"" << std::endl;
 
     /*
      *  Set the line parameters.
@@ -298,10 +267,9 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     NVMAddress nAddress;
 
     nAddress.SetPhysicalAddress( address );
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - linenum: %d\n", linenum);
+
     nextAccess->SetLine( nAddress, operation, cycle, dataBlock, oldDataBlock, threadId );
 
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - return true\n");
     return true;
 }
 
@@ -309,9 +277,9 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
  * Get the next N accesses to main memory. Called GetNextAccess N times and 
  * places the return values into a vector of TraceLine pointers.
  */
-int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )
+int SniperTraceReader::GetNextNAccesses( unsigned int N, 
+                                   std::vector<TraceLine *> *nextAccesses )
 {
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )\n");
     int successes;
     class TraceLine *nextLine;
 
@@ -337,7 +305,85 @@ int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *
     return successes;
 }
 
-int SniperTraceReader::getHostnameByIP(char *hostname, char *ip)
+bool SniperTraceReader::StartSniperCommunication( ) 
+{
+    printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( )\n");
+    struct sockaddr_in nvmain_address;
+    // socket create and verification 
+    // socket(int domain, int type, int protocol)
+    nvmain_socket = socket(AF_INET, SOCK_STREAM, 0); 
+    if (nvmain_socket == -1) 
+    { 
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - socket creation failed.\n"); 
+        return false;
+    } 
+    else 
+    {
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - socket successfully created.\n"); 
+    }
+    
+    // clear address structure
+    bzero(&nvmain_address, sizeof(nvmain_address)); 
+
+    // assign IP, PORT 
+    nvmain_address.sin_family = AF_INET; 
+    nvmain_address.sin_addr.s_addr = INADDR_ANY; 
+    nvmain_address.sin_port = htons(PORT); 
+
+    // Binding newly created socket to given IP and verification 
+    // bind(int fd, struct sockaddr *local_addr, socklen_t addr_length)
+    if (bind(nvmain_socket, (struct sockaddr*) &nvmain_address, sizeof(nvmain_address)) < 0) 
+    { 
+        perror("ERROR on binding");
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - socket bind failed.\n"); 
+        return false;
+    } 
+    else
+    {
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - socket successfully binded.\n"); 
+    }
+
+    // Now nvmain is ready to listen and verification 
+    if ((listen(nvmain_socket, 5)) != 0) 
+    { 
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - listen failed.\n"); 
+        return false;
+    } 
+    else
+    {
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - NVMain listening.\n"); 
+    }
+
+    return true;
+}
+
+bool SniperTraceReader::Accept()
+{
+    struct sockaddr_in sniper_address; 
+    socklen_t sniper_len;
+    sniper_len = sizeof(sniper_address);
+
+    // Accept the data packet from sniper and verification 
+    new_nvmain_socket = accept(nvmain_socket, (struct sockaddr*) &sniper_address, &sniper_len); 
+    if (new_nvmain_socket < 0) 
+    { 
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - nvmain acccept failed.\n"); 
+        return false;
+    } 
+    else
+    {
+        printf("[NVMSIM] [SniperTraceReader.cpp] StartSniperCommunication( ) - nvmain acccept the sniper.\n"); 
+    }
+    return true;
+}
+
+bool SniperTraceReader::FinishSniperCommunication()
+{
+    close(this->nvmain_socket); 
+    return true;
+}
+
+int SniperTraceReader::GetHostnameByIP(char *hostname, char *ip)
 {
    printf("[NVMSIM] [SniperTraceReader.cpp] getHostnameByIP(...) <- (char *hostname, char *ip)\n");
    struct hostent *he;
@@ -363,37 +409,37 @@ int SniperTraceReader::getHostnameByIP(char *hostname, char *ip)
    return 1;
 }
 
-void SniperTraceReader::chat(int sniper_socket)
+void SniperTraceReader::Chat()
 {
-   printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) <- (int sniper_socket)\n");
+   printf("[NVMSIM] [SniperTraceReader.cpp] chat()\n");
    char buffer[MAX];
    int write_res, read_res;
    for (int calls = 1; calls <= 100; calls++)
    {
       bzero(buffer, sizeof(buffer));
       sprintf(buffer, "%d", calls);
-      write_res = write(sniper_socket, buffer, sizeof(buffer));
+      write_res = write(this->nvmain_socket, buffer, sizeof(buffer));
       if(write_res) 
       {
          bzero(buffer, sizeof(buffer));
-         read_res = read(sniper_socket, buffer, sizeof(buffer));
+         read_res = read(this->nvmain_socket, buffer, sizeof(buffer));
          if(read_res)
          {
-            printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - from NVMain : %s\n", buffer);
+            printf("[NVMSIM] [SniperTraceReader.cpp] Chat() - from NVMain : %s\n", buffer);
          }
          else
          {
-            printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - error on read event\n");
+            printf("[NVMSIM] [SniperTraceReader.cpp] Chat() - error on read event\n");
          }
       }
       else
       {
-         printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - error on write event\n");
+         printf("[NVMSIM] [SniperTraceReader.cpp] Chat() - error on write event\n");
       }
    }
 
    bzero(buffer, sizeof(buffer));
    sprintf(buffer, "%s", "exit");
-   write_res = write(sniper_socket, buffer, sizeof(buffer));
-   printf("[NVMSIM] [SniperTraceReader.cpp] chat(...) - sniper Exit...\n");
+   write_res = write(this->nvmain_socket, buffer, sizeof(buffer));
+   printf("[NVMSIM] [SniperTraceReader.cpp] Chat() - sniper Exit...\n");
 } 

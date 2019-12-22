@@ -6,7 +6,7 @@ services:
       context: .
     image: nvmsim/sniper:latest
     container_name: sniper
-    # restart: always
+    restart: always
     privileged: true
     volumes:
       - ./src/sniper/entrypoint.sh:/usr/local/bin/entrypoint.sh
@@ -17,6 +17,8 @@ services:
       - "7200:7200"
     depends_on:
       - nvmain
+    links: 
+      - nvmain
     command:
       - entrypoint.sh
 
@@ -26,7 +28,7 @@ services:
       context: .
     image: nvmsim/nvmain:latest
     container_name: nvmain
-#    restart: always
+    restart: always
     volumes:
       - ./src/nvmain/entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./src/nvmain/tracefile.nvt:/opt/nvmain/tracefile.nvt
@@ -34,6 +36,11 @@ services:
       - nvmsim-network
     ports:
       - "2000:2000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     command:
       - entrypoint.sh
 

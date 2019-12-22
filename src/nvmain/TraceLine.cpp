@@ -32,6 +32,7 @@
 *******************************************************************************/
 
 #include "traceReader/TraceLine.h"
+#include <inttypes.h>
 
 using namespace NVM;
 
@@ -57,13 +58,8 @@ TraceLine::~TraceLine( )
 /* Set the values of the address and memory operation. */
 void TraceLine::SetLine( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )
 {
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- ( NVMAddress& addr, OpType op, ncycle_t cy, NVMDataBlock& data, NVMDataBlock& oldData, ncounters_t threadId )\n");
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- address: %lld\n", (long long) addr.GetBitAddress());
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- operation: %d\n", op);
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- cycle: %lld\n", (long long) cy);
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- data: %lld\n", (long long) data.GetSize());
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- oldData: %lld\n", (long long)oldData.GetSize());
-    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- threadId: %lld\n", (long long) threadId);
+    printf("\n[NVMSIM] [TraceLine.cpp] SetLine(...) <- ( addr, op, cy, data, oldData, threadId )\n");
+    printf("[NVMSIM] [TraceLine.cpp] SetLine(...) <- ( %" PRIu64 ", %d, %" PRIu64 ", %" PRIu64 ", %" PRIu64 ", %" PRIu64 " )\n", addr.GetBitAddress(),op, cy, data.GetSize(), oldData.GetSize(), threadId);
     this->address = addr;
     this->operation = op;
     this->cycle = cy;

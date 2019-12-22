@@ -52,12 +52,14 @@
 #include "src/EventQueue.h"
 #include "NVM/nvmain.h"
 #include "traceSim/traceMain.h"
+#include "traceReader/SniperTrace/SniperTraceReader.h"
 
 using namespace NVM;
 
 int main( int argc, char *argv[] )
 {
-    printf("[NVMSIM] [traceMain.cpp] int main(...) -> ( int argc, char *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] int main(...) <- ( argc, *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] int main(...) <- ( %d, %p )\n", argc, (void *) argv);
     for(int i = 0; i < argc; i++)
         printf("[NVMSIM] [traceMain.cpp] int main(...) - argv[%d/%d]: %s\n", i+1, argc, argv[i]);
     printf("[NVMSIM] [traceMain.cpp] int main(...) - TraceMain *traceRunner = new TraceMain( )\n");
@@ -78,7 +80,9 @@ TraceMain::~TraceMain( )
 
 int TraceMain::RunTrace( int argc, char *argv[] )
 {
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) -> ( int argc, char *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) <- ( int argc, char *argv[] )\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) <- ( %d, %p )\n", argc, (void *) argv);
+
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Stats *stats = new Stats( )\n");
     Stats *stats = new Stats( );
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Config *config = new Config( )\n");
@@ -187,18 +191,28 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     simInterface->SetConfig( config, true );
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simInterface->GetCacheMisses(): %d\n", simInterface->GetCacheMisses(10, 20));
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )...\n");
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( %p, %s, %s )\n", (void *) config, "defaultMemory", "true");
     nvmain->SetConfig( config, "defaultMemory", true );
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )... done\n");
 
-    std::cout << "traceMain (" << (void*)(this) << ")" << std::endl;
-    nvmain->PrintHierarchy( );
+    // std::cout << "traceMain (" << (void*)(this) << ")" << std::endl;
+    // nvmain->PrintHierarchy( );
+    
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - hierarchy printed\n");
 
     if( config->KeyExists( "TraceReader" ) )
-        trace = TraceReaderFactory::CreateNewTraceReader( 
-                config->GetString( "TraceReader" ) );
+    {
+        printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - trace is %s\n", config->GetString( "TraceReader" ).c_str());
+        trace = TraceReaderFactory::CreateNewTraceReader( config->GetString( "TraceReader" ) );
+    }
     else
-        trace = TraceReaderFactory::CreateNewTraceReader( "NVMainTrace" );
+    {
+        printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - trace is NVMainTrace\n");
+         trace = TraceReaderFactory::CreateNewTraceReader( "NVMainTrace" );
+    }
 
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - setTraceFile...\n");
     trace->SetTraceFile( argv[2] );
 
     if( argc == 3 )
@@ -213,13 +227,25 @@ int TraceMain::RunTrace( int argc, char *argv[] )
      *  The trace cycle is assumed to be the rate that the CPU/LLC is issuing. 
      *  Scale the simulation cycles to be the number of *memory cycles* to run.
      */
-    simulateCycles = (uint64_t)ceil( ((double)(config->GetValue( "CPUFreq" )) 
-                    / (double)(config->GetValue( "CLK" ))) * simulateCycles ); 
+    simulateCycles = (uint64_t)ceil( ((double)(config->GetValue( "CPUFreq" )) / (double)(config->GetValue( "CLK" ))) * simulateCycles ); 
 
     std::cout << simulateCycles << " memory cycles) ***" << std::endl;
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
 
     currentCycle = 0;
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader...\n");
+    // if(config->GetString( "TraceReader" ) == "SniperTrace")
+    // {
+    //     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... yes\n");
+    //     SniperTraceReader *sniper_tracer = dynamic_cast<SniperTraceReader*>(trace);
+    //     sniper_tracer->StartSniperCommunication();
+    // }
+    // else
+    // {
+    //     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... no :(\n");
+    // }
+    
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... done\n");
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %lld\n", (long long) simulateCycles);
     while( currentCycle <= simulateCycles || simulateCycles == 0 )
     {

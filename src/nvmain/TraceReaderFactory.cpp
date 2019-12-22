@@ -56,7 +56,9 @@ GenericTraceReader *TraceReaderFactory::CreateNewTraceReader( std::string reader
     else if( reader == "RubyTrace" )
         tracer = new RubyTraceReader( );
     else if( reader == "SniperTrace" )
+    {
         tracer = new SniperTraceReader( );
+    }
 
     if( tracer == NULL )
         std::cout << "NVMain: Unknown trace reader `" << reader << "'." 

@@ -52,18 +52,12 @@ class SniperTraceReader : public GenericTraceReader
     
     bool GetNextAccess( TraceLine *nextAccess );
     int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
-    bool StartSniperCommunication();
-    bool FinishSniperCommunication();
-    bool Accept();
   
   private:
     std::string traceFile;
     std::ifstream trace;
     unsigned int traceVersion;
     bool readVersion;
-    int nvmain_socket, new_nvmain_socket; 
-    int GetHostnameByIP(char* hostname, char* ip);
-    void Chat();
 };
 
 };

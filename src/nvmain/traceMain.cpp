@@ -83,23 +83,14 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) <- ( int argc, char *argv[] )\n");
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) <- ( %d, %p )\n", argc, (void *) argv);
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Stats *stats = new Stats( )\n");
     Stats *stats = new Stats( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - Config *config = new Config( )\n");
     Config *config = new Config( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - GenericTraceReader *trace = NULL\n");
     GenericTraceReader *trace = NULL;
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - TraceLine *tl = new TraceLine( )\n");
     TraceLine *tl = new TraceLine( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - SimInterface *simInterface = new NullInterface( )\n");
     SimInterface *simInterface = new NullInterface( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - NVMain *nvmain = new NVMain( )\n");
     NVMain *nvmain = new NVMain( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - EventQueue *mainEventQueue = new EventQueue( )\n");
     EventQueue *mainEventQueue = new EventQueue( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - GlobalEventQueue *globalEventQueue = new GlobalEventQueue( )\n");
     GlobalEventQueue *globalEventQueue = new GlobalEventQueue( );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - TagGenerator *tagGenerator = new TagGenerator( 1000 )\n");
     TagGenerator *tagGenerator = new TagGenerator( 1000 );
     bool IgnoreData = false;
 
@@ -120,7 +111,6 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     }
     std::cout << std::endl << std::endl;
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - configuring and setting values\n");
     config->Read( argv[1] );
     config->SetSimInterface( simInterface );
     SetEventQueue( mainEventQueue );
@@ -129,7 +119,6 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     SetTagGenerator( tagGenerator );
     std::ofstream statStream;
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking args\n");
     /* Allow for overriding config parameter values for trace simulations from command line. */
     if( argc > 4 )
     {
@@ -147,7 +136,6 @@ int TraceMain::RunTrace( int argc, char *argv[] )
         }
     }
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking KeyExists\n");
     if( config->KeyExists( "StatsFile" ) )
     {
         statStream.open( config->GetString( "StatsFile" ).c_str(), std::ofstream::out | std::ofstream::app );
@@ -180,27 +168,17 @@ int TraceMain::RunTrace( int argc, char *argv[] )
         }
     }
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - AddChild( nvmain )\n");
     AddChild( nvmain );
     nvmain->SetParent( this );
 
     globalEventQueue->SetFrequency( config->GetEnergy( "CPUFreq" ) * 1000000.0 );
     globalEventQueue->AddSystem( nvmain, config );
-
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simInterface->SetConfig( config, true )\n");
     simInterface->SetConfig( config, true );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simInterface->GetCacheMisses(): %d\n", simInterface->GetCacheMisses(10, 20));
-
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )...\n");
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( %p, %s, %s )\n", (void *) config, "defaultMemory", "true");
     nvmain->SetConfig( config, "defaultMemory", true );
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - nvmain->SetConfig( config, \"defaultMemory\", true )... done\n");
 
-    // std::cout << "traceMain (" << (void*)(this) << ")" << std::endl;
-    // nvmain->PrintHierarchy( );
+    std::cout << "traceMain (" << (void*)(this) << ")" << std::endl;
+    nvmain->PrintHierarchy( );
     
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - hierarchy printed\n");
-
     if( config->KeyExists( "TraceReader" ) )
     {
         printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - trace is %s\n", config->GetString( "TraceReader" ).c_str());
@@ -212,7 +190,6 @@ int TraceMain::RunTrace( int argc, char *argv[] )
          trace = TraceReaderFactory::CreateNewTraceReader( "NVMainTrace" );
     }
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - setTraceFile...\n");
     trace->SetTraceFile( argv[2] );
 
     if( argc == 3 )
@@ -233,19 +210,6 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
 
     currentCycle = 0;
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader...\n");
-    // if(config->GetString( "TraceReader" ) == "SniperTrace")
-    // {
-    //     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... yes\n");
-    //     SniperTraceReader *sniper_tracer = dynamic_cast<SniperTraceReader*>(trace);
-    //     sniper_tracer->StartSniperCommunication();
-    // }
-    // else
-    // {
-    //     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... no :(\n");
-    // }
-    
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - checking if is SniperTraceReader... done\n");
     printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %lld\n", (long long) simulateCycles);
     while( currentCycle <= simulateCycles || simulateCycles == 0 )
     {
@@ -377,5 +341,3 @@ bool TraceMain::RequestComplete( NVMainRequest* request )
 
     return true;
 }
-
-

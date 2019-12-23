@@ -6,6 +6,7 @@
 #include "fixed_types.h"
 #include "subsecond_time.h"
 #include "dram_cntlr_interface.h"
+#include <fstream>
 
 class DramPerfModelNVM : public DramPerfModel
 {
@@ -15,11 +16,8 @@ private:
     ComponentBandwidth m_dram_bandwidth;
     SubsecondTime m_total_queueing_delay;
     SubsecondTime m_total_access_latency;
-    int sniper_socket;
-    bool StartNVMainCommunication();
-    bool FinishNVMainCommunication();
-    int GetHostnameByIP(char* hostname, char* ip);
-    void Chat();
+    std::string traceFile;
+    std::ifstream trace;
 public:
     DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size);
     ~DramPerfModelNVM();

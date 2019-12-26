@@ -54,6 +54,13 @@
 #include "traceSim/traceMain.h"
 #include "traceReader/SniperTrace/SniperTraceReader.h"
 
+#include <fcntl.h> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
+#include <unistd.h> 
+
+#include <inttypes.h>
+
 using namespace NVM;
 
 int main( int argc, char *argv[] )
@@ -97,6 +104,10 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     uint64_t simulateCycles;
     uint64_t currentCycle;
     
+        
+    std::string fifofile = "/tmp/nvmsim-fifofile";
+    mkfifo(fifofile.c_str(), 0666);
+
     if( argc < 4 )
     {
         std::cout << "Usage: nvmain CONFIG_FILE TRACE_FILE CYCLES [PARAM=value ...]" << std::endl;
@@ -197,7 +208,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     else
         simulateCycles = atoi( argv[3] );
 
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %" PRIu64 "\n", simulateCycles);
     std::cout << "*** Simulating " << simulateCycles << " input cycles. (";
 
     /*
@@ -207,12 +218,13 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     simulateCycles = (uint64_t)ceil( ((double)(config->GetValue( "CPUFreq" )) / (double)(config->GetValue( "CLK" ))) * simulateCycles ); 
 
     std::cout << simulateCycles << " memory cycles) ***" << std::endl;
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %lld\n", (long long) simulateCycles);
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - simulateCycles: %" PRIu64 "\n", simulateCycles);
 
     currentCycle = 0;
-    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %lld\n", (long long) simulateCycles);
+    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %" PRIu64 "\n", simulateCycles);
     while( currentCycle <= simulateCycles || simulateCycles == 0 )
     {
+        printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - currentCycle: %" PRIu64 "\n", simulateCycles);
         printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - trace->GetNextAccess( tl )\n");
         if( !trace->GetNextAccess( tl ) )
         {
@@ -247,7 +259,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
         if( !IgnoreData ) request->oldData = tl->GetOldData( );
         request->status = MEM_REQUEST_INCOMPLETE;
         request->owner = (NVMObject *)this;
-        
+
         /* 
          * If you want to ignore the cycles used in the trace file, just set
          * the cycle to 0. 
@@ -308,6 +320,61 @@ int TraceMain::RunTrace( int argc, char *argv[] )
             if( currentCycle >= simulateCycles && simulateCycles != 0 )
                 break;
         }
+
+        printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to read...\n");
+        int fd, response;
+        fd = open(fifofile.c_str(), O_RDONLY);
+        if(fd != -1)
+        {
+            printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to read... done\n");
+            
+            std::string message_to_sniper;
+            char message_from_sniper[255];
+
+            response = read(fd, message_from_sniper, 255);
+            if(response)
+            {
+                printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - {message_from_sniper: %s}\n", message_from_sniper);
+            }
+            else
+            {
+                printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - error on reading message\n");
+            }
+            close(fd); 
+            
+            printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to write...\n");
+            fd = open(fifofile.c_str(), O_WRONLY);
+            if(fd != -1)
+            {
+                printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to write... done\n");
+                
+                std::ostringstream ss_currentCycle;
+                ss_currentCycle << currentCycle;
+                message_to_sniper = "";
+                message_to_sniper += ss_currentCycle.str();
+
+                response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
+                if(response)
+                {
+                    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - {message_to_sniper: %s}\n", message_to_sniper.c_str());
+                }
+                else
+                {
+                    printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - error on writing message\n");
+                }
+                close(fd); 
+            }
+            else
+            {
+                printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to write... error\n");
+            }
+            
+        }
+        else
+        {
+            printf("[NVMSIM] [traceMain.cpp] RunTrace(...) - opening fifofile to read... error\n");
+        }
+
     }       
 
     GetChild( )->CalculateStats( );

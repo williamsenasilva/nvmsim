@@ -54,8 +54,10 @@ class SniperTraceReader : public GenericTraceReader
     int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
   
   private:
-    std::string traceFile;
     std::ifstream trace;
+    std::string traceFile;
+    std::string fifofile;
+    std::string message_to_sniper;
     unsigned int traceVersion;
     bool readVersion;
 };

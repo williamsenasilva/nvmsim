@@ -25,10 +25,7 @@ WORKDIR /opt/nvmain
 ENTRYPOINT ["/bin/bash"]
 
 # Add custom files and make
-ADD src/nvmain/TraceLine.cpp /opt/nvmain/traceReader 
-ADD src/nvmain/traceMain.cpp /opt/nvmain/traceSim
 ADD src/nvmain/TraceReaderFactory.cpp /opt/nvmain/traceReader
-
 ADD src/nvmain/traceReader/SniperTrace /opt/nvmain/traceReader/SniperTrace
 ADD src/nvmain/SConscript /opt/nvmain
 

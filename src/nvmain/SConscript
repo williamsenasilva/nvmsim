@@ -61,7 +61,7 @@ NVMainSource('traceReader/TraceLine.cpp')
 if "NVMSIM" in os.environ:
     print("[NVMSIM] [SConscript] simulator is {}".format(os.environ["NVMSIM"]))
 
-    #TODO: substituir o uso deste arquivos 
+    # TODO: substituir o uso deste arquivos 
     NVMainSource('traceSim/traceMain.cpp')
     
     NVMainSource('traceReader/TraceReaderFactory.cpp')

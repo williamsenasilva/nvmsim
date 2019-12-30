@@ -38,6 +38,13 @@
 #include <cstring>
 #include <arpa/inet.h>
 
+#include <fcntl.h> 
+#include <sys/stat.h> 
+#include <sys/types.h> 
+#include <unistd.h> 
+
+#include <inttypes.h>
+
 #define MAX 80
 #define PORT 7200
 
@@ -50,6 +57,9 @@ SniperTraceReader::SniperTraceReader( )
 
     traceVersion = 0;
     readVersion = false;
+
+    fifofile = "/tmp/nvmsim-fifofile";
+    mkfifo(fifofile.c_str(), 0666);
 }
 
 SniperTraceReader::~SniperTraceReader( )
@@ -78,34 +88,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
 {
     printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) <- ( nextAccess )\n");
     printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) <- ( %p )\n", (void *) nextAccess);
-    /* If there is no trace file, we can't do anything. */
-    if( traceFile == "" )
-    {
-        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - no trace file specified!\n");
-        std::cerr << "No trace file specified!" << std::endl;
-        return false;
-    }
-
-    /* If the trace file is not open, open it if possible. */
-    if( !trace.is_open( ) )
-    {
-        printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - opening trace file %s... \n", traceFile.c_str( ));
-        trace.open( traceFile.c_str( ) );
-        if( !trace.is_open( ) )
-        {
-            printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - opening trace file %s... error\n", traceFile.c_str( ));
-            std::cerr << "Could not open trace file: " << traceFile << "!" << std::endl;
-            return false;
-        }
-        else
-        {
-            printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) - opening trace file %s... done\n", traceFile.c_str( ));
-        }
-        
-    }
-
-    std::string fullLine;
-
+    
     /* We will read in a full line and fill in these values */
     unsigned int cycle = 0;
     OpType operation = READ;
@@ -114,155 +97,180 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     NVMDataBlock oldDataBlock;
     unsigned int threadId = 0;
     
-    /* There are no more lines in the trace... Send back a "dummy" line */
-    getline( trace, fullLine );
-    if( trace.eof( ) )
+    // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read...\n");
+    int fd, response;
+    fd = open(fifofile.c_str(), O_RDONLY);
+    if(fd != -1)
     {
-        NVMAddress nAddress;
-        nAddress.SetPhysicalAddress( 0xDEADC0DEDEADBEEFULL );
-        nextAccess->SetLine( nAddress, NOP, 0, dataBlock, oldDataBlock, 0 );
-        std::cout << "SniperTraceReader: Reached EOF!" << std::endl;
-        return false;
-    }
+        // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read... done\n");
+        
+        std::string message_from_sniper;
+        std::string message_to_sniper;
+        char buffer[255];
+        response = read(fd, buffer, 255);
 
-    if( !readVersion )
-    {
-        if( fullLine.substr( 0, 4 ) == "NVMV" )
+        if(response)
         {
-            std::string versionString = fullLine.substr( 4, std::string::npos );
-            traceVersion = atoi( versionString.c_str( ) );
-        }
+            /*
+            *  Again, the format is : CYCLE OP ADDRESS DATA THREADID
+            *  So the field ids are :   0    1    2      3      4
+            */
+            message_from_sniper = "";
+            int index = 0;
+            while (buffer[ index ] != '\n')
+                message_from_sniper += buffer[ index++ ];
+            
+            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_from_sniper: %s}\n", message_from_sniper.c_str());
 
-        readVersion = true;
-        getline( trace, fullLine );
-    }
-    
-    std::istringstream lineStream( fullLine );
-    std::string field;
-    unsigned char fieldId = 0;
-    
-    /*
-     *  Again, the format is : CYCLE OP ADDRESS DATA THREADID
-     *  So the field ids are :   0    1    2      3      4
-     */
-    while( getline( lineStream, field, ' ' ) )
-    {
-        if( field != "" )
-        {
-            if( fieldId == 0 )
-                cycle = atoi( field.c_str( ) );
-            else if( fieldId == 1 )
+            std::istringstream lineStream( message_from_sniper );
+            std::string field;
+            unsigned char fieldId = 0;
+
+            while( getline( lineStream, field, ' ' ) )
             {
-                if( field == "R" )
-                    operation = READ;
-                else if( field == "W" )
-                    operation = WRITE;
-                else
-                    std::cout << "Warning: Unknown operation `" 
-                        << field << "'" << std::endl;
-            }
-            else if( fieldId == 2 )
-            {
-                std::stringstream fmat;
-
-                fmat << std::hex << field;
-                fmat >> address;
-            }
-            else if( fieldId == 3 )
-            {
-                int byte;
-                int start, end;
-
-                /* Assumes 64-byte memory words.... */
-                // TODO: Drop assumption and use field.length()/2 bytes
-                assert(sizeof(uint64_t)*8 == 64);
-                assert(field.length() == 128); // 1 char per 4 bits
-
-                dataBlock.SetSize( 64 );
-
-                uint32_t *rawData = reinterpret_cast<uint32_t*>(dataBlock.rawData);
-                memset(rawData, 0, 64);
-                
-                for( byte = 0; byte < 16; byte++ )
+                if( field != "" )
                 {
-                    std::stringstream fmat;
-
-                    end = 8*byte + 8;
-                    start = 8*byte;
-
-                    fmat << std::hex << field.substr( start, end - start );
-                    fmat >> rawData[byte];
-                    rawData[byte] = htonl( rawData[byte] );
-                }
-            }
-            else if( fieldId == 4 )
-            {
-                if( traceVersion == 0 )
-                {
-                    threadId = atoi( field.c_str( ) );
-
-                    /* Zero out old data in 1.0 trace format. */
-                    oldDataBlock.SetSize( 64 );
-
-                    uint64_t *rawData = reinterpret_cast<uint64_t*>(oldDataBlock.rawData);
-                    memset(rawData, 0, 64);
-                }
-                else
-                {
-                    int byte;
-                    int start, end;
-
-                    /* Assumes 64-byte memory words.... */
-                    // TODO: Drop assumption and use field.length()/2 bytes
-                    assert(sizeof(uint64_t)*8 == 64);
-                    assert(field.length() == 128); // 1 char per 4 bits
-
-                    oldDataBlock.SetSize( 64 );
-
-                    uint32_t *rawData = reinterpret_cast<uint32_t*>(oldDataBlock.rawData);
-                    memset(rawData, 0, 64);
-                    
-                    for( byte = 0; byte < 16; byte++ )
+                    if( fieldId == 0 )
+                        cycle = atoi( field.c_str( ) );
+                    else if( fieldId == 1 )
+                    {
+                        if( field == "R" )
+                            operation = READ;
+                        else if( field == "W" )
+                            operation = WRITE;
+                        else
+                            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - Warning: Unknown operation %s\n", field.c_str());
+                    }
+                    else if( fieldId == 2 )
                     {
                         std::stringstream fmat;
 
-                        end = 8*byte + 8;
-                        start = 8*byte;
-
-                        fmat << std::hex << field.substr( start, end - start );
-                        fmat >> rawData[byte];
-                        rawData[byte] = htonl( rawData[byte] );
+                        fmat << std::hex << field;
+                        fmat >> address;
                     }
+                    else if( fieldId == 3 )
+                    {
+                        int byte;
+                        int start, end;
+
+                        /* Assumes 64-byte memory words.... */
+                        // TODO: Drop assumption and use field.length()/2 bytes
+                        assert(sizeof(uint64_t)*8 == 64);
+                        assert(field.length() == 128); // 1 char per 4 bits
+
+                        dataBlock.SetSize( 64 );
+
+                        uint32_t *rawData = reinterpret_cast<uint32_t*>(dataBlock.rawData);
+                        memset(rawData, 0, 64);
+                        
+                        for( byte = 0; byte < 16; byte++ )
+                        {
+                            std::stringstream fmat;
+
+                            end = 8*byte + 8;
+                            start = 8*byte;
+
+                            fmat << std::hex << field.substr( start, end - start );
+                            fmat >> rawData[byte];
+                            rawData[byte] = htonl( rawData[byte] );
+                        }
+                    }
+                    else if( fieldId == 4 )
+                    {
+                        if( traceVersion == 0 )
+                        {
+                            threadId = atoi( field.c_str( ) );
+
+                            /* Zero out old data in 1.0 trace format. */
+                            oldDataBlock.SetSize( 64 );
+
+                            uint64_t *rawData = reinterpret_cast<uint64_t*>(oldDataBlock.rawData);
+                            memset(rawData, 0, 64);
+                        }
+                        else
+                        {
+                            int byte;
+                            int start, end;
+
+                            /* Assumes 64-byte memory words.... */
+                            // TODO: Drop assumption and use field.length()/2 bytes
+                            assert(sizeof(uint64_t)*8 == 64);
+                            assert(field.length() == 128); // 1 char per 4 bits
+
+                            oldDataBlock.SetSize( 64 );
+
+                            uint32_t *rawData = reinterpret_cast<uint32_t*>(oldDataBlock.rawData);
+                            memset(rawData, 0, 64);
+                            
+                            for( byte = 0; byte < 16; byte++ )
+                            {
+                                std::stringstream fmat;
+
+                                end = 8*byte + 8;
+                                start = 8*byte;
+
+                                fmat << std::hex << field.substr( start, end - start );
+                                fmat >> rawData[byte];
+                                rawData[byte] = htonl( rawData[byte] );
+                            }
+                        }
+                    }
+                    else if( fieldId == 5 )
+                    {
+                        assert( traceVersion != 0 );
+                        threadId = atoi( field.c_str( ) );
+                    }
+                    
+                    fieldId++;
                 }
             }
-            else if( fieldId == 5 )
-            {
-                assert( traceVersion != 0 );
-                threadId = atoi( field.c_str( ) );
-            }
+        }
+        else
+        {
+            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - error on reading message\n");
+        }
+        close(fd); 
+        
+        // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write...\n");
+        fd = open(fifofile.c_str(), O_WRONLY);
+        if(fd != -1)
+        {
+            // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write... done\n");
             
-            fieldId++;
+            std::ostringstream ss_currentCycle;
+            ss_currentCycle << cycle;
+            message_to_sniper = "";
+            message_to_sniper += ss_currentCycle.str();
+            message_to_sniper += atoi(message_to_sniper.c_str() ) + 10;
+            message_to_sniper += "\n";
+
+            response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
+            if(response)
+            {
+                printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_to_sniper: %s}\n", message_to_sniper.c_str());
+            }
+            else
+            {
+                printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - error on writing message\n");
+            }
+            close(fd); 
+        }
+        else
+        {
+            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write... error\n");
         }
     }
+    else
+    {
+        printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read... error\n");
+    }
 
-    static unsigned int linenum = 0;
-
-    linenum++;
-
-    if( operation != READ && operation != WRITE )
-        std::cout << "SniperTraceReader: Unknown Operation: " << operation 
-            << "Line number is " << linenum << ". Full Line is \"" << fullLine 
-            << "\"" << std::endl;
-
-    /*
-     *  Set the line parameters.
-     */
     NVMAddress nAddress;
-
     nAddress.SetPhysicalAddress( address );
 
     nextAccess->SetLine( nAddress, operation, cycle, dataBlock, oldDataBlock, threadId );
-
+    
+    printf("[NVMSIM]\n");
     return true;
 }
 

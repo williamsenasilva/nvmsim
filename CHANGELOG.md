@@ -15,7 +15,3 @@
 - **sniper-7.2/config/base.cfg** para setar **type = nvm** na seção **[perf_model/dram]**
 - **nvmain/TraceReaderFactory.cpp** para incluir **SniperTraceReader.h** 
 - **nvmain/SConscript** para configurar ambiente Sniper 
-
-#### Modificado (apenas para debug)
-- **nvmain/traceReader/TraceLine.cpp**
-- **nvmain/traceSim/traceMain.cpp**

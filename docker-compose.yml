@@ -12,7 +12,7 @@ services:
     volumes:
       - ./src/sniper/entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./shared/logs:/nvmsim/logs
-      - /tmp:/tmp
+      - ./shared:/mnt/shared
     networks:
       - nvmsim-network
     ports:
@@ -30,7 +30,7 @@ services:
     volumes:
       - ./src/nvmain/entrypoint.sh:/usr/local/bin/entrypoint.sh
       - ./src/nvmain/tracefile.nvt:/opt/nvmain/tracefile.nvt
-      - /tmp:/tmp
+      - ./shared:/mnt/shared
     depends_on:
       - sniper
     networks:

@@ -23,7 +23,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
    printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) <- (core_id, cache_block_size)\n");
    printf("[NVMSIM] [dram_perf_model_nvm.cpp] DramPerfModelNVM(...) <- (%d, %d)\n", core_id, cache_block_size);
 
-   fifofile = "/tmp/nvmsim-fifofile";
+   fifofile = "/mnt/shared/nvmsim-fifofile";
    mkfifo(fifofile.c_str(), 0666);
 
    m_dram_access_cost = SubsecondTime::FS() * static_cast<uint64_t>(TimeConverter<float>::NStoFS(Sim()->getCfg()->getFloat("perf_model/dram/latency"))); // Operate in fs for higher precision before converting to uint64_t/SubsecondTime

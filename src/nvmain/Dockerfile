@@ -28,6 +28,9 @@ ENTRYPOINT ["/bin/bash"]
 ADD src/nvmain/TraceReaderFactory.cpp /opt/nvmain/traceReader
 ADD src/nvmain/traceReader/SniperTrace /opt/nvmain/traceReader/SniperTrace
 ADD src/nvmain/SConscript /opt/nvmain
+# Just to debug
+# ADD src/nvmain/traceMain.cpp /opt/nvmain/traceSim
 
-# remove gem5 dependency
 RUN cd /opt/nvmain && scons --build-type=fast
+RUN cd /opt/nvmain && scons --build-type=debug
+RUN cd /opt/nvmain && scons --build-type=prof

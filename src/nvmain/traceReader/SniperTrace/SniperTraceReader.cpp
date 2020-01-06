@@ -58,7 +58,7 @@ SniperTraceReader::SniperTraceReader( )
     traceVersion = 0;
     readVersion = false;
 
-    fifofile = "/tmp/nvmsim-fifofile";
+    fifofile = "/mnt/shared/nvmsim-fifofile";
     mkfifo(fifofile.c_str(), 0666);
 }
 
@@ -241,15 +241,11 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
             ss_currentCycle << cycle;
             message_to_sniper = "";
             message_to_sniper += ss_currentCycle.str();
-            message_to_sniper += atoi(message_to_sniper.c_str() ) + 10;
+            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_to_sniper: %s}\n", message_to_sniper.c_str());
             message_to_sniper += "\n";
 
             response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
-            if(response)
-            {
-                printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_to_sniper: %s}\n", message_to_sniper.c_str());
-            }
-            else
+            if(!response)
             {
                 printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - error on writing message\n");
             }
@@ -280,6 +276,8 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
  */
 int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )
 {
+    printf("[NVMSIM] [SnipertraceReader.cpp] GetNextNAccesses(...) <- ( N, nextAccesses )\n");
+    printf("[NVMSIM] [SnipertraceReader.cpp] GetNextNAccesses(...) <- ( %d, %p )\n", N, (void *) nextAccesses);
     int successes;
     class TraceLine *nextLine;
 

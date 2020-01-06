@@ -1,6 +1,10 @@
 .idea/
 .vscode/
 vendor/
+shared/bin/run-sniper
+shared/bin/nvmain.fast
+shared/bin/nvmain.debug
+shared/bin/nvmain.prof
 shared/pin.log
 shared/sim.*
 shared/src/server-tests

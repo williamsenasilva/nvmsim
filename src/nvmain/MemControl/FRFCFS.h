@@ -3,7 +3,7 @@
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * All rights reserved.
 * 
-* This source code is part of Sniper - A cycle accurate timing, bit accurate
+* This source code is part of NVMain - A cycle accurate timing, bit accurate
 * energy simulator for both volatile (e.g., DRAM) and non-volatile memory
 * (e.g., PCRAM). The source code is free and you can redistribute and/or
 * modify it by providing that the following conditions are met:
@@ -31,38 +31,47 @@
 *                     Website: http://www.cse.psu.edu/~poremba/ )
 *******************************************************************************/
 
-#ifndef __SNIPERTRACEREADER_H__
-#define __SNIPERTRACEREADER_H__
+#ifndef __FRFCFS_H__
+#define __FRFCFS_H__
 
-#include "traceReader/GenericTraceReader.h"
-#include <string>
-#include <iostream>
-#include <fstream>
+#include "src/MemoryController.h"
+#include <deque>
 
 namespace NVM {
 
-class SniperTraceReader : public GenericTraceReader
+class FRFCFS : public MemoryController
 {
   public:
-    SniperTraceReader( );
-    ~SniperTraceReader( );
-    
-    void SetTraceFile( std::string file );
-    std::string GetTraceFile( );
-    
-    bool GetNextAccess( TraceLine *nextAccess );
-    int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
+    FRFCFS( );
+    ~FRFCFS( );
 
-    bool Read();
-    bool Write(uint64_t latency);
+    bool IssueCommand( NVMainRequest *req );
+    bool IsIssuable( NVMainRequest *request, FailReason *fail = NULL );
+    bool RequestComplete( NVMainRequest * request );
+
+    void SetConfig( Config *conf, bool createChildren = true );
+
+    void Cycle( ncycle_t steps );
+
+    void RegisterStats( );
+    void CalculateStats( );
+
+    uint64_t GetLatency();
 
   private:
-    std::ifstream trace;
-    std::string traceFile;
-    std::string fifofile;
-    std::string message_to_sniper;
-    unsigned int traceVersion;
-    bool readVersion;
+    NVMTransactionQueue *memQueue;
+
+    /* Cached Configuration Variables*/
+    uint64_t queueSize;
+
+    /* Stats */
+    uint64_t measuredLatencies, measuredQueueLatencies, measuredTotalLatencies;
+    double averageLatency, averageQueueLatency, averageTotalLatency;
+    uint64_t mem_reads, mem_writes;
+    uint64_t rb_hits;
+    uint64_t rb_miss;
+    uint64_t starvation_precharges;
+    uint64_t write_pauses;
 };
 
 };

@@ -3,7 +3,7 @@
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * All rights reserved.
 * 
-* This source code is part of Sniper - A cycle accurate timing, bit accurate
+* This source code is part of NVMain - A cycle accurate timing, bit accurate
 * energy simulator for both volatile (e.g., DRAM) and non-volatile memory
 * (e.g., PCRAM). The source code is free and you can redistribute and/or
 * modify it by providing that the following conditions are met:
@@ -31,38 +31,80 @@
 *                     Website: http://www.cse.psu.edu/~poremba/ )
 *******************************************************************************/
 
-#ifndef __SNIPERTRACEREADER_H__
-#define __SNIPERTRACEREADER_H__
+#ifndef __NVMAIN_H__
+#define __NVMAIN_H__
 
-#include "traceReader/GenericTraceReader.h"
-#include <string>
 #include <iostream>
 #include <fstream>
+#include <stdint.h>
+#include "src/Params.h"
+#include "src/NVMObject.h"
+#include "src/Prefetcher.h"
+#include "include/NVMainRequest.h"
+#include "traceWriter/GenericTraceWriter.h"
+#include <queue>
 
 namespace NVM {
 
-class SniperTraceReader : public GenericTraceReader
+class Config;
+class MemoryController;
+class MemoryControllerManager;
+class Interconnect;
+class AddressTranslator;
+class SimInterface;
+class NVMainRequest;
+
+class NVMain : public NVMObject
 {
   public:
-    SniperTraceReader( );
-    ~SniperTraceReader( );
-    
-    void SetTraceFile( std::string file );
-    std::string GetTraceFile( );
-    
-    bool GetNextAccess( TraceLine *nextAccess );
-    int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
+    NVMain( );
+    ~NVMain( );
 
-    bool Read();
-    bool Write(uint64_t latency);
+    void SetConfig( Config *conf, std::string memoryName = "defaultMemory", bool createChildren = true );
+
+    Config *GetConfig( );
+
+    void IssuePrefetch( NVMainRequest *request );
+    bool IssueCommand( NVMainRequest *request );
+    bool IssueAtomic( NVMainRequest *request );
+    bool IsIssuable( NVMainRequest *request, FailReason *reason );
+
+    bool RequestComplete( NVMainRequest *request );
+
+    bool CheckPrefetch( NVMainRequest *request );
+
+    void RegisterStats( );
+    void CalculateStats( );
+
+    void Cycle( ncycle_t steps );
+
+    void EnqueuePendingMemoryRequests( NVMainRequest *request );
+    MemoryController **memoryControllers;
+
+    unsigned int GetNumChannels();
 
   private:
-    std::ifstream trace;
-    std::string traceFile;
-    std::string fifofile;
-    std::string message_to_sniper;
-    unsigned int traceVersion;
-    bool readVersion;
+    Config *config;
+    Config **channelConfig;
+    AddressTranslator *translator;
+
+    ncounter_t totalReadRequests;
+    ncounter_t totalWriteRequests;
+    ncounter_t successfulPrefetches;
+    ncounter_t unsuccessfulPrefetches;
+
+    unsigned int numChannels;
+    double syncValue;
+
+    Prefetcher *prefetcher;
+    std::list<NVMainRequest *> prefetchBuffer;
+    std::queue<NVMainRequest *> pendingMemoryRequests;
+
+    std::ofstream pretraceOutput;
+    GenericTraceWriter *preTracer;
+
+    void PrintPreTrace( NVMainRequest *request );
+    void GeneratePrefetches( NVMainRequest *request, std::vector<NVMAddress>& prefetchList );
 };
 
 };

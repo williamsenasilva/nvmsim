@@ -5,6 +5,7 @@
 #### Adicionado
 - Dockerfile para imagem Sniper 7.2 com Ubuntu 18.04 mais aplicações auxiliares
 - Dockerfile para imagem NVMain 2.0 com Ubuntu 18.04 mais aplicações auxiliares
+
 - **sniper-7.2/common/performance_model/dram_perf_model_nvm.cc**
 - **sniper-7.2/common/performance_model/dram_perf_model_nvm.h**
 - **nvmain/traceReader/SniperTrace/SniperTraceReader.cpp**

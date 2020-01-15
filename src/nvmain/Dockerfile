@@ -25,11 +25,21 @@ WORKDIR /opt/nvmain
 ENTRYPOINT ["/bin/bash"]
 
 # Add custom files and make
-ADD src/nvmain/TraceReaderFactory.cpp /opt/nvmain/traceReader
+ADD src/nvmain/traceReader/GenericTraceReader.h /opt/nvmain/traceReader
+ADD src/nvmain/traceReader/TraceReaderFactory.cpp /opt/nvmain/traceReader
 ADD src/nvmain/traceReader/SniperTrace /opt/nvmain/traceReader/SniperTrace
+ADD src/nvmain/MemControl/FCFS.h /opt/nvmain/MemControl/FCFS
+ADD src/nvmain/MemControl/FCFS.cpp /opt/nvmain/MemControl/FCFS
+ADD src/nvmain/MemControl/FRFCFS.h /opt/nvmain/MemControl/FRFCFS
+ADD src/nvmain/MemControl/FRFCFS.cpp /opt/nvmain/MemControl/FRFCFS
+ADD src/nvmain/MemControl/FRFCFS-WQF.h /opt/nvmain/MemControl/FRFCFS-WQF
+ADD src/nvmain/MemControl/FRFCFS-WQF.cpp /opt/nvmain/MemControl/FRFCFS-WQF
+ADD src/nvmain/NVM/nvmain.h /opt/nvmain/NVM
+ADD src/nvmain/NVM/nvmain.cpp /opt/nvmain/NVM
+ADD src/nvmain/src/MemoryController.h /opt/nvmain/src
+ADD src/nvmain/src/MemoryController.cpp /opt/nvmain/src
+ADD src/nvmain/traceSim/traceMain.cpp /opt/nvmain/traceSim
 ADD src/nvmain/SConscript /opt/nvmain
-# Just to debug
-# ADD src/nvmain/traceMain.cpp /opt/nvmain/traceSim
 
 RUN cd /opt/nvmain && scons --build-type=fast
 RUN cd /opt/nvmain && scons --build-type=debug

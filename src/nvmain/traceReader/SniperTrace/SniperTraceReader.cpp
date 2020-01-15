@@ -86,8 +86,8 @@ std::string SniperTraceReader::GetTraceFile( )
  */
 bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
 {
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) <- ( nextAccess )\n");
-    printf("[NVMSIM] [SniperTraceReader.cpp] GetNextAccess(...) <- ( %p )\n", (void *) nextAccess);
+    printf("[NVMSIM] SniperTraceReader::GetNextAccess(nextAccess) <- ( %p )\n", (void *) nextAccess);
+    printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p)\n", (void *) nextAccess);
     
     /* We will read in a full line and fill in these values */
     unsigned int cycle = 0;
@@ -97,13 +97,10 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     NVMDataBlock oldDataBlock;
     unsigned int threadId = 0;
     
-    // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read...\n");
     int fd, response;
     fd = open(fifofile.c_str(), O_RDONLY);
     if(fd != -1)
-    {
-        // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read... done\n");
-        
+    {      
         std::string message_from_sniper;
         std::string message_to_sniper;
         char buffer[255];
@@ -120,7 +117,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
             while (buffer[ index ] != '\n')
                 message_from_sniper += buffer[ index++ ];
             
-            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_from_sniper: %s}\n", message_from_sniper.c_str());
+            printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - message_from_sniper: %s\n", (void *) nextAccess, message_from_sniper.c_str());
 
             std::istringstream lineStream( message_from_sniper );
             std::string field;
@@ -139,7 +136,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
                         else if( field == "W" )
                             operation = WRITE;
                         else
-                            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - Warning: Unknown operation %s\n", field.c_str());
+                            std::cout << "Warning: Unknown operation `" << field << "'" << std::endl;
                     }
                     else if( fieldId == 2 )
                     {
@@ -227,38 +224,13 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
         }
         else
         {
-            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - error on reading message\n");
+            printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - error on reading message\n", (void *) nextAccess);
         }
         close(fd); 
-        
-        // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write...\n");
-        fd = open(fifofile.c_str(), O_WRONLY);
-        if(fd != -1)
-        {
-            // printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write... done\n");
-            
-            std::ostringstream ss_currentCycle;
-            ss_currentCycle << cycle;
-            message_to_sniper = "";
-            message_to_sniper += ss_currentCycle.str();
-            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - {message_to_sniper: %s}\n", message_to_sniper.c_str());
-            message_to_sniper += "\n";
-
-            response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
-            if(!response)
-            {
-                printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - error on writing message\n");
-            }
-            close(fd); 
-        }
-        else
-        {
-            printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to write... error\n");
-        }
     }
     else
     {
-        printf("[NVMSIM] [SnipertraceReader.cpp] RunTrace(...) - opening fifofile to read... error\n");
+        printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - error on opening fifofile to read\n", (void *) nextAccess);
     }
 
     NVMAddress nAddress;
@@ -301,4 +273,37 @@ int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *
     }
 
     return successes;
+}
+
+bool SniperTraceReader::Read() 
+{
+    return true;
+}
+
+bool SniperTraceReader::Write(uint64_t latency)
+{
+    printf("[NVMSIM] SniperTraceReader::Write(latency) <- (%" PRIu64 ")\n", latency);
+    int fd, response = 0;
+    fd = open(fifofile.c_str(), O_WRONLY);
+    if(fd != -1)
+    {
+        std::ostringstream ss_latency;
+        ss_latency << latency;
+        message_to_sniper = "";
+        message_to_sniper += ss_latency.str();
+        printf("[NVMSIM] SniperTraceReader::Write(%" PRIu64 ") - message_to_sniper: %s\n", latency, message_to_sniper.c_str());
+        message_to_sniper += "\n";
+
+        response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
+        if(!response)
+        {
+            printf("[NVMSIM] SniperTraceReader::Write(%" PRIu64 ") - error on writing message\n", latency);
+        }
+        close(fd); 
+    }
+    else
+    {
+        printf("[NVMSIM] SniperTraceReader::Write(%" PRIu64 ") - error on opening fifofile to write\n", latency);
+    }
+    return response;
 }

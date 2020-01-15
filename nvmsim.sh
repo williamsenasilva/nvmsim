@@ -8,8 +8,10 @@ cd $path;
 
 if [ $action ] ; then
     if [ $action == build ]; then
+        docker-compose down 
         docker-compose build
-        docker-compose down && docker-compose up -d && docker-compose logs -t
+    elif [ $action == run ]; then
+        docker-compose down && docker-compose up -d && docker-compose logs -f
     elif [ $action == stop ]; then
         docker-compose down
     else

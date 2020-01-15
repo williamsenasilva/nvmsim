@@ -3,7 +3,7 @@
 * Department of Computer Science and Engineering, The Pennsylvania State University
 * All rights reserved.
 * 
-* This source code is part of Sniper - A cycle accurate timing, bit accurate
+* This source code is part of NVMain - A cycle accurate timing, bit accurate
 * energy simulator for both volatile (e.g., DRAM) and non-volatile memory
 * (e.g., PCRAM). The source code is free and you can redistribute and/or
 * modify it by providing that the following conditions are met:
@@ -31,38 +31,29 @@
 *                     Website: http://www.cse.psu.edu/~poremba/ )
 *******************************************************************************/
 
-#ifndef __SNIPERTRACEREADER_H__
-#define __SNIPERTRACEREADER_H__
+#ifndef __GENERICTRACEREADER_H__
+#define __GENERICTRACEREADER_H__
 
-#include "traceReader/GenericTraceReader.h"
 #include <string>
-#include <iostream>
-#include <fstream>
+#include <vector>
+#include "traceReader/TraceLine.h"
 
 namespace NVM {
 
-class SniperTraceReader : public GenericTraceReader
+class GenericTraceReader
 {
   public:
-    SniperTraceReader( );
-    ~SniperTraceReader( );
-    
-    void SetTraceFile( std::string file );
-    std::string GetTraceFile( );
-    
-    bool GetNextAccess( TraceLine *nextAccess );
-    int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccess );
+    GenericTraceReader( ) { }
 
-    bool Read();
-    bool Write(uint64_t latency);
+    virtual ~GenericTraceReader( ) { }
+    virtual void SetTraceFile( std::string file ) = 0;
 
-  private:
-    std::ifstream trace;
-    std::string traceFile;
-    std::string fifofile;
-    std::string message_to_sniper;
-    unsigned int traceVersion;
-    bool readVersion;
+    virtual std::string GetTraceFile( ) = 0;
+    virtual bool GetNextAccess( TraceLine *nextAccess ) = 0;
+    virtual int  GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses ) = 0;
+    
+    virtual bool Read() { return true; };
+    virtual bool Write(uint64_t) { return true; };
 };
 
 };

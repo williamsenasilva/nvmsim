@@ -53,13 +53,10 @@ using namespace NVM;
 SniperTraceReader::SniperTraceReader( )
 {
     printf("[NVMSIM] [SniperTraceReader.cpp] SniperTraceReader( )\n");
-    traceFile = "";
+    tracefile = "";
 
     traceVersion = 0;
     readVersion = false;
-
-    fifofile = "/mnt/shared/nvmsim-fifofile";
-    mkfifo(fifofile.c_str(), 0666);
 }
 
 SniperTraceReader::~SniperTraceReader( )
@@ -71,12 +68,15 @@ SniperTraceReader::~SniperTraceReader( )
 
 void SniperTraceReader::SetTraceFile( std::string file )
 {
-    traceFile = file;
+    printf("[NVMSIM] SniperTraceReader::SetTraceFile( file )\n");
+    tracefile = file;
+    printf("[NVMSIM] SniperTraceReader::SetTraceFile( file ) - tracefile: %s\n", tracefile.c_str());
+    mkfifo(tracefile.c_str(), 0666);
 }
 
 std::string SniperTraceReader::GetTraceFile( )
 {
-    return traceFile;
+    return tracefile;
 }
 
 /*
@@ -98,7 +98,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     unsigned int threadId = 0;
     
     int fd, response;
-    fd = open(fifofile.c_str(), O_RDONLY);
+    fd = open(tracefile.c_str(), O_RDONLY);
     if(fd != -1)
     {      
         std::string message_from_sniper;
@@ -136,7 +136,9 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
                         else if( field == "W" )
                             operation = WRITE;
                         else
-                            std::cout << "Warning: Unknown operation `" << field << "'" << std::endl;
+                        {
+                            return false;      
+                        }
                     }
                     else if( fieldId == 2 )
                     {
@@ -225,12 +227,14 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
         else
         {
             printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - error on reading message\n", (void *) nextAccess);
+            return false;      
         }
         close(fd); 
     }
     else
     {
-        printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - error on opening fifofile to read\n", (void *) nextAccess);
+        printf("[NVMSIM] SniperTraceReader::GetNextAccess(%p) - error on opening tracefile to read\n", (void *) nextAccess);
+        return false;      
     }
 
     NVMAddress nAddress;
@@ -284,7 +288,7 @@ bool SniperTraceReader::Write(uint64_t latency)
 {
     printf("[NVMSIM] SniperTraceReader::Write(latency) <- (%" PRIu64 ")\n", latency);
     int fd, response = 0;
-    fd = open(fifofile.c_str(), O_WRONLY);
+    fd = open(tracefile.c_str(), O_WRONLY);
     if(fd != -1)
     {
         std::ostringstream ss_latency;
@@ -303,7 +307,7 @@ bool SniperTraceReader::Write(uint64_t latency)
     }
     else
     {
-        printf("[NVMSIM] SniperTraceReader::Write(%" PRIu64 ") - error on opening fifofile to write\n", latency);
+        printf("[NVMSIM] SniperTraceReader::Write(%" PRIu64 ") - error on opening tracefile to write\n", latency);
     }
     return response;
 }

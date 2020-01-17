@@ -21,8 +21,8 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
         m_total_access_latency(SubsecondTime::Zero())
 {
 
-   fifofile = "/mnt/shared/nvmsim-fifofile";
-   mkfifo(fifofile.c_str(), 0666);
+   tracefile = "/mnt/shared/nvmsim-tracefile";
+   mkfifo(tracefile.c_str(), 0666);
 
    m_dram_access_cost = SubsecondTime::FS() * static_cast<uint64_t>(TimeConverter<float>::NStoFS(Sim()->getCfg()->getFloat("perf_model/dram/latency"))); // Operate in fs for higher precision before converting to uint64_t/SubsecondTime
 
@@ -43,12 +43,34 @@ DramPerfModelNVM::~DramPerfModelNVM()
       delete m_queue_model;
       m_queue_model = NULL;
    }
-   // TODO: escrever no fifofile alguma informação que faça o NVMain encerrar
+
+   //TODO: escrever no tracefile alguma informação que faça o NVMain encerrar
+   int fd, response;
+   fd = open(tracefile.c_str(), O_WRONLY);
+   if(fd != -1)
+   {  
+      std::string message_to_nvmain;
+      
+      message_to_nvmain = "";
+      message_to_nvmain += "0000";
+      message_to_nvmain += " ";
+      message_to_nvmain += 'F';
+      message_to_nvmain += " ";
+      message_to_nvmain += "0x000000000";
+      message_to_nvmain += " ";
+      message_to_nvmain += "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+      message_to_nvmain += " ";
+      message_to_nvmain += "0";
+      printf("[NVMSIM] DramPerfModelNVM::~DramPerfModelNVM() message_to_nvmain: %s\n", message_to_nvmain.c_str());
+      response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length()); 
+      if(response)
+         close(fd); 
+   }
 }
 
 SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
 {
-   printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(pkt_time, pkt_size, requester, address, access_type, *perf) <- (%" PRIu64 " ns, %" PRIu64 ", %d, %p, %d, %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(pkt_time, pkt_size, requester, address, access_type, *perf) <- (%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
    
    // pkt_size is in 'Bytes'
    // m_dram_bandwidth is in 'Bits per clock cycle'
@@ -73,7 +95,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    if(access_type == 0 || access_type == 1)
    {
       int fd, response;
-      fd = open(fifofile.c_str(), O_WRONLY);
+      fd = open(tracefile.c_str(), O_WRONLY);
       if(fd != -1)
       {  
          std::string message_to_nvmain;
@@ -87,7 +109,6 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          ss_address << (void const *) address;
          ss_requester << requester;
          ss_perf << (void const *) perf;
-         
          message_to_nvmain = "";
          message_to_nvmain += ss_m_num_accesses.str();
          message_to_nvmain += " ";
@@ -95,21 +116,21 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += " ";
          message_to_nvmain += ss_address.str();
          message_to_nvmain += " ";
-         message_to_nvmain += "edfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefaedfecefa";
+         message_to_nvmain += "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
          // message_to_nvmain += ss_perf.str();
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
-         printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_to_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_to_nvmain.c_str());
+         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_to_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_to_nvmain.c_str());
          message_to_nvmain += "\n";
 
          response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length()); 
          if(!response)
          {
-            printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on writing message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on writing message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
          }
          close(fd); 
          
-         fd = open(fifofile.c_str(), O_RDONLY);
+         fd = open(tracefile.c_str(), O_RDONLY);
          if(fd != -1)
          {
                      
@@ -122,23 +143,23 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
                while (buffer[ index ] != '\n')
                   message_from_nvmain += buffer[ index++ ];
                
-               printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_to_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_from_nvmain.c_str());
+               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_from_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_from_nvmain.c_str());
             }
             else
             {
-               printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on reading message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on reading message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
             }
             close(fd); 
          }
          else
          {
-            printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on opening fifofile to read\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on opening tracefile to read\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
          }
          
       }
       else
       {
-         printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(%" PRIu64 " ns, %" PRIu64 ", %d, %p, %d, %p) - error on opening fifofile to write\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 " ns, %" PRIu64 ", %d, %p, %d, %p) - error on opening tracefile to write\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
       }
    }
 
@@ -154,12 +175,12 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    m_total_access_latency += access_latency;
    m_total_queueing_delay += queue_delay;
 
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {processing_time: %" PRIu64 " ns}\n", processing_time.getNS());
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {m_num_accesses: %" PRIu64 "}\n", m_num_accesses);
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {queue_delay: %" PRIu64 " ns}\n", queue_delay.getNS());
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {m_total_queueing_delay: %" PRIu64 " ns}\n", m_total_queueing_delay.getNS());
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {access_latency: %" PRIu64 " ns}\n", access_latency.getNS());
-   // printf("[NVMSIM] [dram_perf_model_nvm.cpp] getAccessLatency(...) - {m_total_access_latency: %" PRIu64 " ns}\n", m_total_access_latency.getNS());
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {processing_time: %" PRIu64 " ns}\n", processing_time.getNS());
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_num_accesses: %" PRIu64 "}\n", m_num_accesses);
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {queue_delay: %" PRIu64 " ns}\n", queue_delay.getNS());
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_queueing_delay: %" PRIu64 " ns}\n", m_total_queueing_delay.getNS());
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {access_latency: %" PRIu64 " ns}\n", access_latency.getNS());
+   // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_access_latency: %" PRIu64 " ns}\n", m_total_access_latency.getNS());
    printf("[NVMSIM]\n");
    return access_latency;
 }

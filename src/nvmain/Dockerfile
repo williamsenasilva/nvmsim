@@ -42,5 +42,5 @@ ADD src/nvmain/traceSim/traceMain.cpp /opt/nvmain/traceSim
 ADD src/nvmain/SConscript /opt/nvmain
 
 RUN cd /opt/nvmain && scons --build-type=fast
-RUN cd /opt/nvmain && scons --build-type=debug
-RUN cd /opt/nvmain && scons --build-type=prof
+#RUN cd /opt/nvmain && scons --build-type=debug
+#RUN cd /opt/nvmain && scons --build-type=prof

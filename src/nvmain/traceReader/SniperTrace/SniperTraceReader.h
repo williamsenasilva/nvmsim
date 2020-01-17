@@ -58,8 +58,7 @@ class SniperTraceReader : public GenericTraceReader
 
   private:
     std::ifstream trace;
-    std::string traceFile;
-    std::string fifofile;
+    std::string tracefile;
     std::string message_to_sniper;
     unsigned int traceVersion;
     bool readVersion;

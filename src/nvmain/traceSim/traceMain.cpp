@@ -182,6 +182,7 @@ int TraceMain::RunTrace( int argc, char *argv[] )
     else
         trace = TraceReaderFactory::CreateNewTraceReader( "NVMainTrace" );
 
+    printf("[NVMSIM] - TraceMain::RunTrace(argc, argv) <- (%d, %p) - traceFile[2]: %s\n", argc, (void *) argv, argv[2]);
     trace->SetTraceFile( argv[2] );
 
     if( argc == 3 )

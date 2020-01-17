@@ -17,8 +17,7 @@ private:
     SubsecondTime m_total_queueing_delay;
     SubsecondTime m_total_access_latency;
     std::ifstream trace;
-    std::string traceFile;
-    std::string fifofile;
+    std::string tracefile;
 public:
     DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size);
     ~DramPerfModelNVM();

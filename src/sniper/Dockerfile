@@ -1,5 +1,4 @@
 FROM ubuntu:18.04
-MAINTAINER William Sena Silva
 
 # Add i386 support for support for Pin
 RUN dpkg --add-architecture i386
@@ -13,21 +12,20 @@ RUN apt-get update && apt-get install -y \
     libstdc++6:i386 \
     && rm -rf /var/lib/apt/lists/*
 
-# For Sniper
+# For building Sniper
 RUN apt-get update && apt-get install -y \
     automake \
     build-essential \
     curl \
-    git \
-    g++-6 \
+    wget \
     libboost-dev \
-    libbz2-dev \
     libsqlite3-dev \
     zlib1g-dev \
-    wget \
+    libbz2-dev \
+    g++-4.8 \
     && rm -rf /var/lib/apt/lists/*
 
-# For RISC-V Tools
+# For building RISC-V Tools
 RUN apt-get update && apt-get install -y \
     autoconf \
     automake \
@@ -39,7 +37,7 @@ RUN apt-get update && apt-get install -y \
     flex \
     gawk \
     gperf \
-    libexpat1-dev \
+    libexpat-dev \
     libgmp-dev \
     libmpc-dev \
     libmpfr-dev \
@@ -51,38 +49,29 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# For SPEC CPU2006
-RUN apt-get update && apt-get install -y \
-    gfortran
-
-# For user utilities
+# Helper utilities
 RUN apt-get update && apt-get install -y \
     gdb \
-    procps \
-    vim \
-    emacs \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
-# Add vendor sources and make
-ADD vendor/sniper-7.2.tgz /opt
+# Add pinplay
 ADD vendor/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz /opt
 
+# Get Sniper 7.3
+RUN cd /opt && git clone http://snipersim.org/download/68e4381a4e874444/git/sniper.git /opt/sniper-7.3
+
 # Set environment values and alias
-ENV SNIPER_HOME=/opt/sniper-7.2
+ENV SNIPER_HOME=/opt/sniper-7.3
 ENV PIN_HOME=/opt/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
-RUN echo "alias run-sniper='/opt/sniper-7.2/run-sniper'" >> ~/.bashrc
-RUN echo "alias test-sniper='cd /opt/sniper-7.2/test/fft; make run'" >> ~/.bashrc
+RUN echo "alias run-sniper='/opt/sniper-7.3/run-sniper'" >> ~/.bashrc
+RUN echo "alias test-sniper='cd /opt/sniper-7.3/test/fft; make run'" >> ~/.bashrc
 
-RUN cd /opt/sniper-7.2/; make
-RUN mkdir -p /nvmsim/logs
+# Add custom files
+ADD src/sniper/dram_perf_model.cc /opt/sniper-7.3/common/performance_model/
+ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper-7.3/common/performance_model/
+ADD src/sniper/dram_perf_model_nvm.h /opt/sniper-7.3/common/performance_model/
+ADD src/sniper/base.cfg /opt/sniper-7.3/config/
 
-EXPOSE 7200
-WORKDIR /nvmsim
-ENTRYPOINT ["/bin/bash"]
-
-# Add custom files and make
-ADD src/sniper/dram_perf_model.cc /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.h /opt/sniper-7.2/common/performance_model/
-ADD src/sniper/base.cfg /opt/sniper-7.2/config/
-RUN cd /opt/sniper-7.2/; make
+# Make
+RUN cd /opt/sniper-7.3/; make

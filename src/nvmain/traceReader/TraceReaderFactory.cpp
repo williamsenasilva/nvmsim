@@ -43,8 +43,7 @@ using namespace NVM;
 
 GenericTraceReader *TraceReaderFactory::CreateNewTraceReader( std::string reader )
 {
-    printf("[NVMSIM] [TraceReaderFactory.cpp] CreateNewTraceReader(...) -> ( reader )\n");
-    printf("[NVMSIM] [TraceReaderFactory.cpp] CreateNewTraceReader(...) - reader: %s\n", reader.c_str());
+    printf("[NVMSIM] TraceReaderFactory::CreateNewTraceReader(...) <- (reader: %s)\n", reader.c_str());
     GenericTraceReader *tracer = NULL;
 
     if( reader == "" )

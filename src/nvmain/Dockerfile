@@ -1,5 +1,4 @@
 FROM ubuntu:18.04
-MAINTAINER William Sena Silva
 
 # For NVMain
 RUN apt-get update && apt-get install -y \
@@ -20,11 +19,7 @@ RUN cd /opt/nvmain && scons --build-type=prof
 # Set environment values and alias
 ENV NVMSIM="sniper"
 
-EXPOSE 2000
-WORKDIR /opt/nvmain
-ENTRYPOINT ["/bin/bash"]
-
-# Add custom files and make
+# Add custom files
 ADD src/nvmain/traceReader/GenericTraceReader.h /opt/nvmain/traceReader
 ADD src/nvmain/traceReader/TraceReaderFactory.cpp /opt/nvmain/traceReader
 ADD src/nvmain/traceReader/SniperTrace /opt/nvmain/traceReader/SniperTrace
@@ -41,6 +36,7 @@ ADD src/nvmain/src/MemoryController.cpp /opt/nvmain/src
 ADD src/nvmain/traceSim/traceMain.cpp /opt/nvmain/traceSim
 ADD src/nvmain/SConscript /opt/nvmain
 
+# Make
 RUN cd /opt/nvmain && scons --build-type=fast
 #RUN cd /opt/nvmain && scons --build-type=debug
 #RUN cd /opt/nvmain && scons --build-type=prof

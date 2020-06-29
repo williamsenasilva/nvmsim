@@ -5,10 +5,10 @@
 #include "stats.h"
 #include "shmem_perf.h"
 
-#include <fcntl.h> 
-#include <sys/stat.h> 
-#include <sys/types.h> 
-#include <unistd.h> 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #define MAX 80
 #define PORT 2000
@@ -48,9 +48,9 @@ DramPerfModelNVM::~DramPerfModelNVM()
    int fd, response;
    fd = open(tracefile.c_str(), O_WRONLY);
    if(fd != -1)
-   {  
+   {
       std::string message_to_nvmain;
-      
+
       message_to_nvmain = "";
       message_to_nvmain += "0000";
       message_to_nvmain += " ";
@@ -61,17 +61,17 @@ DramPerfModelNVM::~DramPerfModelNVM()
       message_to_nvmain += "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
       message_to_nvmain += " ";
       message_to_nvmain += "0";
-      printf("[NVMSIM] DramPerfModelNVM::~DramPerfModelNVM() message_to_nvmain: %s\n", message_to_nvmain.c_str());
-      response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length()); 
+      printf("[NVMSIM] DramPerfModelNVM::~DramPerfModelNVM() - message_to_nvmain: %s\n", message_to_nvmain.c_str());
+      response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
       if(response)
-         close(fd); 
+         close(fd);
    }
 }
 
 SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
 {
-   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(pkt_time, pkt_size, requester, address, access_type, *perf) <- (%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
-   
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) <- (pkt_time: %" PRIu64 ", pkt_size: %" PRIu64 ", requester: %d, address: %p, access_type: %d, perf: %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+
    // pkt_size is in 'Bytes'
    // m_dram_bandwidth is in 'Bits per clock cycle'
    if ((!m_enabled) || (requester >= (core_id_t) Config::getSingleton()->getApplicationCores()))
@@ -97,14 +97,14 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
       int fd, response;
       fd = open(tracefile.c_str(), O_WRONLY);
       if(fd != -1)
-      {  
+      {
          std::string message_to_nvmain;
          std::string message_from_nvmain;
          std::ostringstream ss_m_num_accesses;
          std::ostringstream ss_address;
          std::ostringstream ss_requester;
          std::ostringstream ss_perf;
-         
+
          ss_m_num_accesses << m_num_accesses;
          ss_address << (void const *) address;
          ss_requester << requester;
@@ -120,20 +120,20 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          // message_to_nvmain += ss_perf.str();
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
-         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_to_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_to_nvmain.c_str());
+         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - message_to_nvmain: %s\n", message_to_nvmain.c_str());
          message_to_nvmain += "\n";
 
-         response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length()); 
+         response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
          if(!response)
          {
-            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on writing message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on writing message\n");
          }
-         close(fd); 
-         
+         close(fd);
+
          fd = open(tracefile.c_str(), O_RDONLY);
          if(fd != -1)
          {
-                     
+
             char buffer[10];
             response = read(fd, buffer, 10);
             if(response)
@@ -142,29 +142,29 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
                int index = 0;
                while (buffer[ index ] != '\n')
                   message_from_nvmain += buffer[ index++ ];
-               
-               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - message_from_nvmain: %s\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf, message_from_nvmain.c_str());
+
+               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - message_from_nvmain: %s\n", message_from_nvmain.c_str());
             }
             else
             {
-               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on reading message\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on reading message\n");
             }
-            close(fd); 
+            close(fd);
          }
          else
          {
-            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 ", %" PRIu64 ", %d, %p, %d, %p) - error on opening tracefile to read\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on opening tracefile to read\n");
          }
-         
+
       }
       else
       {
-         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(%" PRIu64 " ns, %" PRIu64 ", %d, %p, %d, %p) - error on opening tracefile to write\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on opening tracefile to write\n");
       }
    }
 
    SubsecondTime access_latency = queue_delay + processing_time + m_dram_access_cost;
-   
+
    perf->updateTime(pkt_time);
    perf->updateTime(pkt_time + queue_delay, ShmemPerf::DRAM_QUEUE);
    perf->updateTime(pkt_time + queue_delay + processing_time, ShmemPerf::DRAM_BUS);
@@ -181,7 +181,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_queueing_delay: %" PRIu64 " ns}\n", m_total_queueing_delay.getNS());
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {access_latency: %" PRIu64 " ns}\n", access_latency.getNS());
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_access_latency: %" PRIu64 " ns}\n", m_total_access_latency.getNS());
-   printf("[NVMSIM]\n");
+   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) -> access_latency: %" PRIu64 "\n", access_latency.getNS());
    return access_latency;
 }
 

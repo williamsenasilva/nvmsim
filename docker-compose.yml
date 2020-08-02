@@ -1,16 +1,19 @@
-version: "3"
+version: "3.5"
 services:
   # ***** SNIPER SERVICE *****
   sniper:
     build:
-      dockerfile: ./src/sniper/Dockerfile
+      dockerfile: ./src/dockerfiles/Dockerfile-sniper
       context: .
+      args:
+        SNIPER_PATH: ${SNIPER_PATH}
+        PINPLAY_PATH: ${PINPLAY_PATH}
     image: nvmsim/sniper:latest
     container_name: sniper
     # restart: always
     privileged: true
     volumes:
-      - ./src/sniper/entrypoint.sh:/usr/local/bin/entrypoint.sh
+      - ./src/entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
       - ./shared/logs:/nvmsim/logs
       - ./shared:/mnt/shared
     networks:
@@ -22,13 +25,13 @@ services:
   # ***** NVMAIN SERVICE *****
   nvmain:
     build:
-      dockerfile: ./src/nvmain/Dockerfile
+      dockerfile: ./src/dockerfiles/Dockerfile-nvmain
       context: .
     image: nvmsim/nvmain:latest
     container_name: nvmain
     # restart: always
     volumes:
-      - ./src/nvmain/entrypoint.sh:/usr/local/bin/entrypoint.sh
+      - ./src/entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
       - ./src/nvmain/tracefile.nvt:/opt/nvmain/tracefile.nvt
       - ./shared:/mnt/shared
     depends_on:

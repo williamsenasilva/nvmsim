@@ -1,10 +1,12 @@
 .idea/
 .vscode/
 vendor/
+.env
 shared/bin/run-sniper
 shared/bin/nvmain.fast
 shared/bin/nvmain.debug
 shared/bin/nvmain.prof
+shared/bin
 shared/pin.log
 shared/sim.*
 shared/src/server-tests

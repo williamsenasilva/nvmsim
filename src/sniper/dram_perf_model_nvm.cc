@@ -61,7 +61,7 @@ DramPerfModelNVM::~DramPerfModelNVM()
       message_to_nvmain += "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
       message_to_nvmain += " ";
       message_to_nvmain += "0";
-      printf("[NVMSIM] DramPerfModelNVM::~DramPerfModelNVM() - message_to_nvmain: %s\n", message_to_nvmain.c_str());
+      printf("[NVMSIM][INFO ] send: %s\n", message_to_nvmain.c_str());
       response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
       if(response)
          close(fd);
@@ -70,7 +70,7 @@ DramPerfModelNVM::~DramPerfModelNVM()
 
 SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
 {
-   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) <- (pkt_time: %" PRIu64 ", pkt_size: %" PRIu64 ", requester: %d, address: %p, access_type: %d, perf: %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
+   printf("[NVMSIM][DEBUG] getAccessLatency(pkt_time: %" PRIu64 ", pkt_size: %" PRIu64 ", requester: %d, address: %p, access_type: %d, perf: %p)\n", pkt_time.getNS(), pkt_size, requester, (void *) address, access_type, (void *) perf);
 
    // pkt_size is in 'Bytes'
    // m_dram_bandwidth is in 'Bits per clock cycle'
@@ -120,13 +120,13 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          // message_to_nvmain += ss_perf.str();
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
-         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - message_to_nvmain: %s\n", message_to_nvmain.c_str());
+         printf("[NVMSIM][INFO] send: %s\n", message_to_nvmain.c_str());
          message_to_nvmain += "\n";
 
          response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
          if(!response)
          {
-            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on writing message\n");
+            printf("[NVMSIM][ERROR] Error on writing message\n");
          }
          close(fd);
 
@@ -143,23 +143,23 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
                while (buffer[ index ] != '\n')
                   message_from_nvmain += buffer[ index++ ];
 
-               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - message_from_nvmain: %s\n", message_from_nvmain.c_str());
+               printf("[NVMSIM][INFO ] receive: %s\n", message_from_nvmain.c_str());
             }
             else
             {
-               printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on reading message\n");
+               printf("[NVMSIM][ERROR] Error on reading message\n");
             }
             close(fd);
          }
          else
          {
-            printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on opening tracefile to read\n");
+            printf("[NVMSIM][ERROR] Error on opening tracefile to read\n");
          }
 
       }
       else
       {
-         printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - error on opening tracefile to write\n");
+         printf("[NVMSIM][ERROR] Error on opening tracefile to write\n");
       }
    }
 
@@ -181,7 +181,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_queueing_delay: %" PRIu64 " ns}\n", m_total_queueing_delay.getNS());
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {access_latency: %" PRIu64 " ns}\n", access_latency.getNS());
    // printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) - {m_total_access_latency: %" PRIu64 " ns}\n", m_total_access_latency.getNS());
-   printf("[NVMSIM] DramPerfModelNVM::getAccessLatency(...) -> access_latency: %" PRIu64 "\n", access_latency.getNS());
+   printf("[NVMSIM][DEBUG] getAccessLatency(...) - return access_latency: %" PRIu64 "\n", access_latency.getNS());
    return access_latency;
 }
 

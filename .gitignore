@@ -1,11 +1,17 @@
 .idea/
 .vscode/
 vendor/
+bin/
 .env
 shared/bin/run-sniper
 shared/bin/nvmain.fast
 shared/bin/nvmain.debug
 shared/bin/nvmain.prof
+shared/nvmsim
+shared/nvmain
+shared/sniper
+shared/pinplay
+shared/vendor
 shared/bin
 shared/pin.log
 shared/sim.*

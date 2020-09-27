@@ -55,23 +55,8 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Add Sniper
-ADD vendor/sniper /opt/sniper
-
-# Add PinPlay
-ADD vendor/pinplay /opt/pinplay
-
 # Set environment values and alias
 ENV SNIPER_HOME=/opt/sniper
 ENV PIN_HOME=/opt/pinplay
 RUN echo "alias run-sniper='/opt/sniper/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper/test/fft; make run'" >> ~/.bashrc
-
-# Add custom files
-ADD src/sniper/dram_perf_model.cc /opt/sniper/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.cc /opt/sniper/common/performance_model/
-ADD src/sniper/dram_perf_model_nvm.h /opt/sniper/common/performance_model/
-ADD src/sniper/base.cfg /opt/sniper/config/
-
-# Make
-RUN cd /opt/sniper/; make

@@ -26,6 +26,15 @@ Exemplo
 ```bash
 tar -xf pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz
 ```
+
+- #### Download do NVMain 
+Obtenha a versão mais recente do NVMain por download no <a href="https://bitbucket.org/mrp5060/nvmain" target="_blank">bitbucket</a> 
+Ou via hg clone do projeto.
+Exemplo
+```bash
+hg clone https://bitbucket.org/mrp5060/nvmain
+```
+
 - #### Criar e configurar arquivo .env
 Crie um arquivo .env dentro da raíz do projeto com o comando abaixo
 ```bash
@@ -37,6 +46,7 @@ Exemplo:
 ```conf
 SNIPER_PATH=/home/william/Downloads/sniper
 PINPLAY_PATH=/home/william/Downloads/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
+NVMAIN_PATH=/home/william/Downloads/nvmain
 ```
 
 - #### Construir imagens Docker

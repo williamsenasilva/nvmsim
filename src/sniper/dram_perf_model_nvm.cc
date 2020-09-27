@@ -21,7 +21,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
         m_total_access_latency(SubsecondTime::Zero())
 {
 
-   tracefile = "/mnt/shared/nvmsim-tracefile";
+   tracefile = "/mnt/nvmsim/tracefile";
    mkfifo(tracefile.c_str(), 0666);
 
    m_dram_access_cost = SubsecondTime::FS() * static_cast<uint64_t>(TimeConverter<float>::NStoFS(Sim()->getCfg()->getFloat("perf_model/dram/latency"))); // Operate in fs for higher precision before converting to uint64_t/SubsecondTime
@@ -95,9 +95,11 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    if(access_type == 0 || access_type == 1)
    {
       int fd, response;
+      printf("[NVMSIM][DEBUG] Opening %s to write... ", tracefile.c_str());
       fd = open(tracefile.c_str(), O_WRONLY);
       if(fd != -1)
       {
+         printf("ok\n");
          std::string message_to_nvmain;
          std::string message_from_nvmain;
          std::ostringstream ss_m_num_accesses;
@@ -130,9 +132,11 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          }
          close(fd);
 
+         printf("[NVMSIM][DEBUG] Opening %s to read... ", tracefile.c_str());
          fd = open(tracefile.c_str(), O_RDONLY);
          if(fd != -1)
          {
+            printf("ok\n");
 
             char buffer[10];
             response = read(fd, buffer, 10);
@@ -153,13 +157,13 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          }
          else
          {
-            printf("[NVMSIM][ERROR] Error on opening tracefile to read\n");
+            printf("error\n");
          }
 
       }
       else
       {
-         printf("[NVMSIM][ERROR] Error on opening tracefile to write\n");
+         printf("error\n");
       }
    }
 

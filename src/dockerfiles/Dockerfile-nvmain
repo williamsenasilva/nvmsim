@@ -7,38 +7,5 @@ RUN apt-get update && apt-get install -y \
     scons \
     && rm -rf /var/lib/apt/lists/*
 
-RUN cd /opt && hg clone https://bitbucket.org/mrp5060/nvmain
-
-# remove gem5 dependency
-RUN sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' /opt/nvmain/SConscript
-
-RUN cd /opt/nvmain && scons --build-type=fast
-RUN cd /opt/nvmain && scons --build-type=debug
-RUN cd /opt/nvmain && scons --build-type=prof
-
 # Set environment values and alias
 ENV NVMSIM="sniper"
-
-# Add custom files
-RUN mkdir -p /opt/nvmain/traceReader/SniperTrace
-ADD src/nvmain/GenericTraceReader.h /opt/nvmain/traceReader
-ADD src/nvmain/TraceReaderFactory.cpp /opt/nvmain/traceReader
-ADD src/nvmain/SniperTraceReader.cpp /opt/nvmain/traceReader/SniperTrace
-ADD src/nvmain/SniperTraceReader.h /opt/nvmain/traceReader/SniperTrace
-ADD src/nvmain/FCFS.h /opt/nvmain/MemControl/FCFS
-ADD src/nvmain/FCFS.cpp /opt/nvmain/MemControl/FCFS
-ADD src/nvmain/FRFCFS.h /opt/nvmain/MemControl/FRFCFS
-ADD src/nvmain/FRFCFS.cpp /opt/nvmain/MemControl/FRFCFS
-ADD src/nvmain/FRFCFS-WQF.h /opt/nvmain/MemControl/FRFCFS-WQF
-ADD src/nvmain/FRFCFS-WQF.cpp /opt/nvmain/MemControl/FRFCFS-WQF
-ADD src/nvmain/nvmain.h /opt/nvmain/NVM
-ADD src/nvmain/nvmain.cpp /opt/nvmain/NVM
-ADD src/nvmain/MemoryController.h /opt/nvmain/src
-ADD src/nvmain/MemoryController.cpp /opt/nvmain/src
-ADD src/nvmain/traceMain.cpp /opt/nvmain/traceSim
-ADD src/nvmain/SConscript /opt/nvmain
-
-# Make
-RUN cd /opt/nvmain && scons --build-type=fast
-#RUN cd /opt/nvmain && scons --build-type=debug
-#RUN cd /opt/nvmain && scons --build-type=prof

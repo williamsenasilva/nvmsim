@@ -13,9 +13,10 @@ services:
     # restart: always
     privileged: true
     volumes:
+      - ./shared/sniper:/opt/sniper
+      - ./shared/pinplay:/opt/pinplay
       - ./src/entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
-      - ./shared/logs:/nvmsim/logs
-      - ./shared:/mnt/shared
+      - ./shared/nvmsim:/mnt/nvmsim
     networks:
       - nvmsim-network
     ports:
@@ -31,9 +32,9 @@ services:
     container_name: nvmain
     # restart: always
     volumes:
+      - ./shared/nvmain:/opt/nvmain
       - ./src/entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
-      - ./src/nvmain/tracefile.nvt:/opt/nvmain/tracefile.nvt
-      - ./shared:/mnt/shared
+      - ./shared/nvmsim:/mnt/nvmsim
     depends_on:
       - sniper
     networks:

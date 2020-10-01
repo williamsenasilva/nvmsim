@@ -5,9 +5,6 @@ services:
     build:
       dockerfile: ./src/dockerfiles/Dockerfile-sniper
       context: .
-      args:
-        SNIPER_PATH: ${SNIPER_PATH}
-        PINPLAY_PATH: ${PINPLAY_PATH}
     image: nvmsim/sniper:latest
     container_name: sniper
     # restart: always

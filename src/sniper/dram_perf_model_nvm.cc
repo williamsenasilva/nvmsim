@@ -43,29 +43,6 @@ DramPerfModelNVM::~DramPerfModelNVM()
       delete m_queue_model;
       m_queue_model = NULL;
    }
-
-   //TODO: escrever no tracefile alguma informação que faça o NVMain encerrar
-   int fd, response;
-   fd = open(tracefile.c_str(), O_WRONLY);
-   if(fd != -1)
-   {
-      std::string message_to_nvmain;
-
-      message_to_nvmain = "";
-      message_to_nvmain += "0000";
-      message_to_nvmain += " ";
-      message_to_nvmain += 'F';
-      message_to_nvmain += " ";
-      message_to_nvmain += "0x000000000";
-      message_to_nvmain += " ";
-      message_to_nvmain += "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-      message_to_nvmain += " ";
-      message_to_nvmain += "0";
-      printf("[NVMSIM][INFO ] send: %s\n", message_to_nvmain.c_str());
-      response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
-      if(response)
-         close(fd);
-   }
 }
 
 SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
@@ -95,11 +72,9 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    if(access_type == 0 || access_type == 1)
    {
       int fd, response;
-      printf("[NVMSIM][DEBUG] Opening %s to write... ", tracefile.c_str());
       fd = open(tracefile.c_str(), O_WRONLY);
       if(fd != -1)
       {
-         printf("ok\n");
          std::string message_to_nvmain;
          std::string message_from_nvmain;
          std::ostringstream ss_m_num_accesses;
@@ -118,13 +93,13 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += " ";
          message_to_nvmain += ss_address.str();
          message_to_nvmain += " ";
-         message_to_nvmain += "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+         message_to_nvmain += "wdffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
          // message_to_nvmain += ss_perf.str();
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
-         printf("[NVMSIM][INFO] send: %s\n", message_to_nvmain.c_str());
+         printf("[NVMSIM][INFO ] send: %s\n", message_to_nvmain.c_str());
          message_to_nvmain += "\n";
-
+         //printf("[NVMSIM][DEBUG ] block size: %d\n", getCacheBlockSize());
          response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
          if(!response)
          {
@@ -132,12 +107,9 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          }
          close(fd);
 
-         printf("[NVMSIM][DEBUG] Opening %s to read... ", tracefile.c_str());
          fd = open(tracefile.c_str(), O_RDONLY);
          if(fd != -1)
          {
-            printf("ok\n");
-
             char buffer[10];
             response = read(fd, buffer, 10);
             if(response)
@@ -155,15 +127,6 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
             }
             close(fd);
          }
-         else
-         {
-            printf("error\n");
-         }
-
-      }
-      else
-      {
-         printf("error\n");
       }
    }
 

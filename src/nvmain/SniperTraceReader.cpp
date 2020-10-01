@@ -96,11 +96,9 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     unsigned int threadId = 0;
     
     int fd, response;
-    printf("[NVMSIM][DEBUG] Opening %s to read... ", tracefile.c_str());
     fd = open(tracefile.c_str(), O_RDONLY);
     if(fd != -1)
     {
-        printf("ok\n");
         std::string message_from_sniper;
         std::string message_to_sniper;
         char buffer[255];
@@ -233,8 +231,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
     }
     else
     {
-        printf("error\n");
-        return false;      
+        return false;
     }
 
     NVMAddress nAddress;
@@ -286,11 +283,9 @@ bool SniperTraceReader::Write(uint64_t latency)
 {
     printf("[NVMSIM][DEBUG] Write(latency: %" PRIu64 ")\n", latency);
     int fd, response = 0;
-    printf("[NVMSIM][DEBUG] Opening %s to write... ", tracefile.c_str());
     fd = open(tracefile.c_str(), O_WRONLY);
     if(fd != -1)
     {
-        printf("ok\n");
         std::ostringstream ss_latency;
         ss_latency << latency;
         message_to_sniper = "";
@@ -307,7 +302,7 @@ bool SniperTraceReader::Write(uint64_t latency)
     }
     else
     {
-        printf("error\n");
+        return false;
     }
     return response;
 }

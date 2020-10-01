@@ -32,7 +32,7 @@ Obtenha a versão mais recente do NVMain por download no <a href="https://bitbuc
 Ou via hg clone do projeto.
 Exemplo
 ```bash
-hg clone https://bitbucket.org/mrp5060/nvmain
+git clone git@github.com:SEAL-UCSB/NVmain.git
 ```
 
 - #### Criar e configurar arquivo .env
@@ -44,9 +44,9 @@ Edite as variáveis de ambiente dentro deste arquivo com as pastas do Sniper e P
 
 Exemplo:
 ```conf
-SNIPER_PATH=/home/william/Downloads/sniper
+SNIPER_PATH=/home/william/Downloads/sniper-7.2
 PINPLAY_PATH=/home/william/Downloads/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
-NVMAIN_PATH=/home/william/Downloads/nvmain
+NVMAIN_PATH=/home/william/Downloads/NVmain
 ```
 
 - #### Construir imagens Docker

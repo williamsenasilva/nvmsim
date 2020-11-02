@@ -1,7 +1,5 @@
 #!/bin/bash
 
-reset
-
 action=$1
 option=$2
 path=$(pwd)
@@ -10,9 +8,11 @@ path=$(pwd)
 cd $path
 
 source ${path}/.env
-sniper_path="${SNIPER_PATH}"
-pinplay_path="${PINPLAY_PATH}"
-nvmain_path="${NVMAIN_PATH}"
+
+sniper_path="${SNIPER_PATH:-}"
+pinplay_path="${PINPLAY_PATH:-}"
+nvmain_path="${NVMAIN_PATH:-}"
+sniper_arch="${SNIPER_TARGET_ARCH:-intel64}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -38,10 +38,19 @@ function copy_third_source_files() {
 
 function copy_source_files() {
   # Sniper files
+  cp ${path}/src/sniper/core.cc ${path}/shared/sniper/common/core/
+  cp ${path}/src/sniper/cache_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
+  cp ${path}/src/sniper/dram_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/
+  cp ${path}/src/sniper/memory_manager.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
+  cp ${path}/src/sniper/dram_cache.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
   cp ${path}/src/sniper/dram_perf_model.cc ${path}/shared/sniper/common/performance_model/
+  cp ${path}/src/sniper/dram_perf_model.h ${path}/shared/sniper/common/performance_model/
   cp ${path}/src/sniper/dram_perf_model_nvm.cc ${path}/shared/sniper/common/performance_model/
   cp ${path}/src/sniper/dram_perf_model_nvm.h ${path}/shared/sniper/common/performance_model/
-  cp ${path}/src/sniper/base.cfg ${path}/shared/sniper/config/
+  cp ${path}/src/sniper/dram_cntlr_interface.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
+  cp ${path}/src/sniper/nvmsim.cfg ${path}/shared/sniper/config/
+  # c program
+  gcc -O0 ${path}/src/helper/c_programs/basic/basic.c -o ${path}/shared/sniper/nvmsim
   # NVMain files
   mkdir -p ${path}/shared/nvmain/traceReader/SniperTrace
   cp ${path}/src/nvmain/GenericTraceReader.h ${path}/shared/nvmain/traceReader
@@ -63,23 +72,23 @@ function copy_source_files() {
   cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim
 }
 
-if [ $action ]; then
-  if [ $action == build ]; then
-    copy_third_source_files
-    copy_source_files
-    # remove gem5 dependency
-    sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' ${path}/shared/nvmain/SConscript
-    docker-compose down && docker-compose ${action} ${option}
-  elif [ $action == run ]; then
-    copy_source_files
-    docker-compose down && docker-compose up -d && docker-compose logs -f
-  elif [ $action == stop ]; then
-    docker-compose down
-  else
-    echo "[NVMSIM][ERROR] Parameter \"${action}\" not accepted. Please, use run, stop or build."
-    exit 1
-  fi
-else
+action=${action:-run}
+if [ $action == build ]; then
+  reset
+  docker-compose down
+  copy_third_source_files
   copy_source_files
-  docker-compose down && docker-compose up -d && docker-compose logs -f
+  # remove gem5 dependency
+  sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' ${path}/shared/nvmain/SConscript
+  docker-compose ${action} ${option}
+elif [ $action == run ]; then
+  reset
+  docker-compose down
+  copy_source_files
+  docker-compose up -d && docker-compose logs -f
+elif [ $action == stop ]; then
+  docker-compose down
+else
+  echo "[NVMSIM][ERROR] Parameter \"${action}\" not accepted. Please, use run, stop or build."
+  exit 1
 fi

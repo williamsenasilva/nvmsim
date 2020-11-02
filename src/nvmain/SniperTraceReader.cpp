@@ -52,7 +52,7 @@ using namespace NVM;
 
 SniperTraceReader::SniperTraceReader( )
 {
-    printf("[NVMSIM][DEBUG] SniperTraceReader( )\n");
+    //printf("[NVMSIM][DEBUG] SniperTraceReader( )\n");
     tracefile = "";
 
     traceVersion = 0;
@@ -61,7 +61,7 @@ SniperTraceReader::SniperTraceReader( )
 
 SniperTraceReader::~SniperTraceReader( )
 {
-    printf("[NVMSIM][DEBUG] ~SniperTraceReader( )\n");
+    //printf("[NVMSIM][DEBUG] ~SniperTraceReader( )\n");
     if( trace.is_open( ) )
         trace.close( );
 }
@@ -85,7 +85,7 @@ std::string SniperTraceReader::GetTraceFile( )
  */
 bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
 {
-    printf("[NVMSIM][DEBUG] GetNextAccess(nextAccess: %10p)\n", (void *) nextAccess);
+    //printf("[NVMSIM][DEBUG] GetNextAccess(nextAccess: %10p)\n", (void *) nextAccess);
 
     /* We will read in a full line and fill in these values */
     unsigned int cycle = 0;
@@ -115,7 +115,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
             while (buffer[ index ] != '\n')
                 message_from_sniper += buffer[ index++ ];
             
-            printf("[NVMSIM][INFO ] receive: %s\n", message_from_sniper.c_str());
+            printf("[NVMSIM][INFO ][RCIVE] %s\n", message_from_sniper.c_str());
 
             std::istringstream lineStream( message_from_sniper );
             std::string field;
@@ -248,7 +248,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
  */
 int SniperTraceReader::GetNextNAccesses( unsigned int N, std::vector<TraceLine *> *nextAccesses )
 {
-    printf("[NVMSIM][DEBUG] GetNextNAccesses(N: %d, nextAccesses: %p)\n", N, (void *) nextAccesses);
+    //printf("[NVMSIM][DEBUG] GetNextNAccesses(N: %d, nextAccesses: %p)\n", N, (void *) nextAccesses);
     int successes;
     class TraceLine *nextLine;
 
@@ -281,7 +281,7 @@ bool SniperTraceReader::Read()
 
 bool SniperTraceReader::Write(uint64_t latency)
 {
-    printf("[NVMSIM][DEBUG] Write(latency: %" PRIu64 ")\n", latency);
+    //printf("[NVMSIM][DEBUG] Write(latency: %" PRIu64 ")\n", latency);
     int fd, response = 0;
     fd = open(tracefile.c_str(), O_WRONLY);
     if(fd != -1)
@@ -290,7 +290,7 @@ bool SniperTraceReader::Write(uint64_t latency)
         ss_latency << latency;
         message_to_sniper = "";
         message_to_sniper += ss_latency.str();
-        printf("[NVMSIM][INFO ] send: %s\n", message_to_sniper.c_str());
+        printf("[NVMSIM][INFO ][SEND ] %s\n", message_to_sniper.c_str());
         message_to_sniper += "\n";
 
         response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 

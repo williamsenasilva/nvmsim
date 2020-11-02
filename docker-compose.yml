@@ -7,6 +7,8 @@ services:
       context: .
     image: nvmsim/sniper:latest
     container_name: sniper
+    environment:
+      SNIPER_TARGET_ARCH: ${SNIPER_TARGET_ARCH}
     # restart: always
     privileged: true
     volumes:
@@ -28,6 +30,7 @@ services:
     image: nvmsim/nvmain:latest
     container_name: nvmain
     # restart: always
+    privileged: true
     volumes:
       - ./shared/nvmain:/opt/nvmain
       - ./src/entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh

@@ -68,7 +68,11 @@ DramCntlr::getDataFromDram(IntPtr address, core_id_t requester, Byte* data_buf, 
       memcpy((void*) data_buf, (void*) m_data_map[address], getCacheBlockSize());
    }
 
-   SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, READ, perf);
+   // sniper mode
+   // SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, READ, perf);
+   // nvmsim mode
+   SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, READ, perf, data_buf);
+
    ++m_reads;
    #ifdef ENABLE_DRAM_ACCESS_COUNT
    addToDramAccessCount(address, READ);
@@ -93,7 +97,10 @@ DramCntlr::putDataToDram(IntPtr address, core_id_t requester, Byte* data_buf, Su
          m_fault_injector->postWrite(address, address, getCacheBlockSize(), (Byte*)m_data_map[address], now);
    }
 
-   SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf);
+   // original
+   //SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf);
+   // nvmsim
+   SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf, data_buf);
 
    ++m_writes;
    #ifdef ENABLE_DRAM_ACCESS_COUNT
@@ -109,6 +116,13 @@ DramCntlr::runDramPerfModel(core_id_t requester, SubsecondTime time, IntPtr addr
 {
    UInt64 pkt_size = getCacheBlockSize();
    SubsecondTime dram_access_latency = m_dram_perf_model->getAccessLatency(time, pkt_size, requester, address, access_type, perf);
+   return dram_access_latency;
+}
+
+SubsecondTime DramCntlr::runDramPerfModel(core_id_t requester, SubsecondTime time, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf, Byte* data_buf)
+{
+   UInt64 pkt_size = getCacheBlockSize();
+   SubsecondTime dram_access_latency = m_dram_perf_model->getAccessLatency(time, pkt_size, requester, address, access_type, perf, data_buf);
    return dram_access_latency;
 }
 

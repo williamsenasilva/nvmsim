@@ -505,7 +505,6 @@ MYLOG("begin");
             {
                DramCntlrInterface* dram_interface = m_dram_cache ? (DramCntlrInterface*)m_dram_cache : (DramCntlrInterface*)m_dram_cntlr;
                dram_interface->handleMsgFromTagDirectory(sender, shmem_msg);
-               //printf("\n");
                break;
             }
 

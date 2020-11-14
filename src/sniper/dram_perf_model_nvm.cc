@@ -44,7 +44,15 @@ DramPerfModelNVM::~DramPerfModelNVM()
    }
 }
 
-SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
+SubsecondTime
+DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf)
+{
+   Byte* data_buf = new Byte[pkt_size];
+   memset((void*) data_buf, 0x00, pkt_size);
+   return DramPerfModelNVM::getAccessLatency(pkt_time, pkt_size, requester, address, access_type, perf, data_buf);
+}
+
+SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 pkt_size, core_id_t requester, IntPtr address, DramCntlrInterface::access_t access_type, ShmemPerf *perf, Byte* data_buf)
 {
    // pkt_size is in 'Bytes'
    // m_dram_bandwidth is in 'Bits per clock cycle'
@@ -91,18 +99,6 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += " ";
          message_to_nvmain += ss_address.str();
          message_to_nvmain += " ";
-
-         // recover data from address
-         Byte data_buf[pkt_size];
-         std::unordered_map<IntPtr, Byte*> m_data_map;
-         m_data_map[address] = new Byte[pkt_size];
-         memcpy((void*) data_buf, (void*) m_data_map[address], pkt_size);
-         /*
-         printf("[NVMSIM][TRACE] [DramPerfModelNVM::getAccessLatency] data:\n");
-         for(UInt32 i = 0; i < pkt_size; ++i)
-            printf("%02x ", data_buf[i]);
-         printf("\n");
-         */
 
          for(UInt32 i = 0; i < pkt_size; ++i)
          {

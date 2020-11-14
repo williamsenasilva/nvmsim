@@ -362,7 +362,6 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
       if (m_cheetah_manager)
          m_cheetah_manager->access(mem_op_type, curr_addr_aligned);
 
-      //if(data_buf)
       HitWhere::where_t this_hit_where = getMemoryManager()->coreInitiateMemoryAccess(
                mem_component,
                lock_signal,
@@ -443,19 +442,6 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
 
    LOG_ASSERT_ERROR(hit_where != HitWhere::UNKNOWN, "HitWhere == UNKNOWN");
 
-   /*
-   if(data_buf)
-   {
-      printf("[NVMSIM][TRACE] [Core::initiateMemoryAccess] data_buf:\n");
-      for(UInt32 i = 0; i < data_size; ++i)
-         printf("%02x ", data_buf[i]);
-      printf("\n");
-   }
-   else
-   {
-      printf("[NVMSIM][TRACE] [Core::initiateMemoryAccess] data_buf: %p\n", (void *) data_buf);
-   }
-   */
    return makeMemoryResult(hit_where, shmem_time);
 }
 

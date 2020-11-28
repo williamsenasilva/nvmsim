@@ -2,63 +2,86 @@
 #include <stdlib.h>
 #include <time.h>
 
-typedef struct {
-    char s[64];
-} String64;
+#define CACHE_BLOCK_SIZE 64
 
-void print_data64(String64 *, int);
+void clear_cache_lines(int64_t *, int);
+
+void fill_cache_lines(int64_t *, int);
+
+void print_cache_lines(int64_t *, int);
 
 int main()
 {
-   int memory_size = 1048576; // (1MB)
-   int cache_block_size = 64;
-   int total_of_lines = memory_size / cache_block_size;
-   int counter_filled_lines = 0;
-   int n_random;
-   String64 *data64;
+   int memory_size = 131072; // 128MB
+   int cache_lines = memory_size / CACHE_BLOCK_SIZE;
+   int64_t *cache_data;
 
-   posix_memalign((void **) &data64, 64, total_of_lines * sizeof(String64));
+   posix_memalign((void *) &cache_data, 64, memory_size);
 
-   if(data64 == NULL)
-      exit (1);
+   if (cache_data == NULL)
+      exit(1);
 
-   // clear data64
-   for(int i = 0; i < total_of_lines; i++)
-      for (int j = 0; j < cache_block_size; j++)
-         data64[i].s[j] = 0x00;
+   printf("[BASIC ][INFO ][CACHE] memory size: %d\n", memory_size);
+   printf("[BASIC ][INFO ][CACHE] cache lines: %d\n", cache_lines);
+   printf("[BASIC ][INFO ][CACHE] cache block size: %d\n", CACHE_BLOCK_SIZE);
 
-   srand(time(0));
+   clear_cache_lines(cache_data, cache_lines);
 
-   while(counter_filled_lines != total_of_lines)
-   {
-      n_random = rand() % total_of_lines;
-      if(data64[n_random].s[0] == 0)
-      {
-         for (int j = 0; j < cache_block_size; j++)
-         {
-            data64[n_random].s[j] = 0xFF;
-         }
-         counter_filled_lines++;
-      }
-   }
+   fill_cache_lines(cache_data, cache_lines);
 
-   // print_data64(data64, total_of_lines);
+   print_cache_lines(cache_data, cache_lines);
 
-   free(data64);
+   free(cache_data);
 
    return 0;
 }
 
-void print_data64(String64 *data64, int total_of_lines)
+void clear_cache_lines(int64_t *cache_data, int cache_lines)
 {
-   printf("size of String64: %lu\n", sizeof(String64));
-   for(int i = 0; i < total_of_lines; i++)
+   int64_t *ptr_index;
+   for (int i = 0; i < cache_lines; i++)
    {
-      printf("data64[%d] = ", i);
-      for (int j = 0; j < 64; j++)
+      ptr_index = &cache_data[i * sizeof(int64_t)];
+      for (int j = 0; j < 8; j++)
+         *ptr_index++ = 0;
+   }
+}
+
+void fill_cache_lines(int64_t *cache_data, int cache_lines)
+{
+   int counter_filled_lines = 0;
+   int64_t *ptr_index;
+   // initialize srand
+   srand(time(0));
+
+   while (counter_filled_lines != cache_lines)
+   {
+      int n_random = rand() % cache_lines;
+      ptr_index = &cache_data[n_random * sizeof(int64_t)];
+      if (*ptr_index == 0)
       {
-         printf("%x", data64[i].s[j]);
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index++ = -1;
+         *ptr_index = -1;
+         counter_filled_lines++;
       }
-      printf("\n");
+   }
+}
+
+void print_cache_lines(int64_t *cache_data, int cache_lines)
+{
+   int64_t *ptr_index;
+   for (int i = 0; i < cache_lines; i++)
+   {
+      ptr_index = &cache_data[i * sizeof(int64_t)];
+      printf("[BASIC ][INFO ][CACHE] %4d %10p [ ", i + 1, ptr_index);
+      for (int j = 0; j < 8; j++)
+         printf("%04x ", *ptr_index++);
+      printf("]\n");
    }
 }

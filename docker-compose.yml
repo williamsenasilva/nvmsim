@@ -13,9 +13,8 @@ services:
     privileged: true
     volumes:
       - ./shared/sniper:/opt/sniper
-      - ./shared/pinplay:/opt/pinplay
-      - ./src/entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
       - ./shared/nvmsim:/mnt/nvmsim
+      - ./src/entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
     networks:
       - nvmsim-network
     ports:

@@ -439,6 +439,16 @@ MYLOG("L1 hit");
    } else {
       /* cache miss: either wrong coherency state or not present in the cache */
 MYLOG("L1 miss");
+
+      /* todo: remove this block
+       * more: https://groups.google.com/g/snipersim/c/5wyQCDrXYww/m/6xcr7TYqDQAJ
+      long long unsigned int* addrp = (long long unsigned int*)ca_address;
+      printf("addr* %llx \n", *addrp);
+      char* content = new char[100];
+      Core* core = getMemoryManager()->getCore();
+      core->accessMemory(Core::NONE,Core::READ,ca_address,content,getCacheBlockSize());
+      */
+
       if (!m_passthrough)
          getMemoryManager()->incrElapsedTime(m_mem_component, CachePerfModel::ACCESS_CACHE_TAGS, ShmemPerfModel::_USER_THREAD);
 
@@ -544,7 +554,6 @@ MYLOG("processMemOpFromCore l%d after next fill", m_mem_component);
       }
    }
 
-
    accessCache(mem_op_type, ca_address, offset, data_buf, data_length, hit_where == HitWhere::where_t(m_mem_component) && count);
 
 MYLOG("access done");
@@ -601,6 +610,14 @@ MYLOG("access done");
       Sim()->getConfig()->getCacheEfficiencyCallbacks().call_notify_access(cache_block_info->getOwner(), mem_op_type, hit_where);
 
    MYLOG("returning %s, latency %lu ns", HitWhereString(hit_where), total_latency.getNS());
+
+   // todo: remove this print line
+   // if((strcmp("dram",HitWhereString(hit_where)) == 0) && mem_op_type != 0)
+   if(mem_op_type != 0)
+   {
+      printf("[NVMSIM][TRACE][CACHE] 0x%08lx [from: %s, total_latency: %lu ns, data_length: %d]\n", ca_address, HitWhereString(hit_where), total_latency.getNS(), data_length);
+   }
+
    return hit_where;
 }
 

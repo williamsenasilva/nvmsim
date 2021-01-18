@@ -430,6 +430,17 @@ MemoryManager::coreInitiateMemoryAccess(
    else if (mem_component == MemComponent::L1_DCACHE && m_dtlb)
       accessTLB(m_dtlb, address, false, modeled);
 
+
+   /* Segmentation fault. Access Address
+   if(mem_op_type != Core::READ)
+   {
+      printf("[NVMSIM][TRACE] [MemoryManager::coreInitiateMemoryAccess] data_buf:\n");
+      for(UInt32 i = 0; i < data_length; ++i)
+         printf("%02x ", data_buf[i]);
+      printf("\n");
+   }
+   */
+
    return m_cache_cntlrs[mem_component]->processMemOpFromCore(
          lock_signal,
          mem_op_type,

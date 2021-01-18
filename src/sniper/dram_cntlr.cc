@@ -98,7 +98,8 @@ DramCntlr::putDataToDram(IntPtr address, core_id_t requester, Byte* data_buf, Su
    }
 
    // original
-   //SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf);
+   // SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf);
+
    // nvmsim
    SubsecondTime dram_access_latency = runDramPerfModel(requester, now, address, WRITE, &m_dummy_shmem_perf, data_buf);
 
@@ -107,6 +108,19 @@ DramCntlr::putDataToDram(IntPtr address, core_id_t requester, Byte* data_buf, Su
    addToDramAccessCount(address, WRITE);
    #endif
    MYLOG("W @ %08lx", address);
+
+   /* todo: remove this block
+    * when print the content it's the same of data_buf
+   m_data_map[address] = new Byte[getCacheBlockSize()];
+   Byte *content = new Byte[getCacheBlockSize()];
+   memcpy((void*) m_data_map[address], (void*) data_buf, getCacheBlockSize());
+   memcpy((void*) content, (void*) m_data_map[address], getCacheBlockSize());
+   */
+
+   printf("[NVMSIM][TRACE][DRAM ] 0x%08lx [", address);
+   for(UInt32 i = 0; i < getCacheBlockSize(); i++)
+      printf("%x", data_buf[i]);
+   printf("]\n");
 
    return boost::tuple<SubsecondTime, HitWhere::where_t>(dram_access_latency, HitWhere::DRAM);
 }

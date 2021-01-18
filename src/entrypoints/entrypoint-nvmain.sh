@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "[NVMSIM][INFO ] NVMain Docker entrypoint"
+#tail -f /dev/null
 cd /opt/nvmain || exit 0
 scons --build-type=fast
 scons --build-type=prof

@@ -53,10 +53,13 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y \
     gdb \
     git \
+    systemd-coredump \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment values and alias
 ENV SNIPER_HOME=/opt/sniper
-ENV PIN_HOME=/opt/pinplay
+ENV SIM_ROOT=/opt/sniper
+ENV PIN_HOME=/opt/sniper/pin_kit
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib:/etc/ld.so.conf.d/
 RUN echo "alias run-sniper='/opt/sniper/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper/test/fft; make run'" >> ~/.bashrc

@@ -384,6 +384,8 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
          hit_where = this_hit_where;
 
       LOG_PRINT("End InitiateSharedMemReq: ADDR(0x%x), offset(%u), curr_size(%u)", curr_addr_aligned, curr_offset, curr_size);
+      // todo: remove this printf line
+      //printf("[NVMSIM][TRACE][CORE ] InitiateSharedMemReq: ADDR(0x%x), offset(%u), curr_size(%u)\n", curr_addr_aligned, curr_offset, curr_size);
 
       // Increment the buffer head
       curr_data_buffer_head += curr_size;
@@ -462,9 +464,13 @@ Core::initiateMemoryAccess(MemComponent::component_t mem_component,
 MemoryResult
 Core::accessMemory(lock_signal_t lock_signal, mem_op_t mem_op_type, IntPtr d_addr, char* data_buffer, UInt32 data_size, MemModeled modeled, IntPtr eip, SubsecondTime now, bool is_fault_mask)
 {
+   printf("[NVMSIM][INFO ][CORE ] 0x%08lx [mode: %s, mem_op_type: %s]\n", d_addr, Sim()->getConfig()->getSimulationMode() == Config::PINTOOL ? "PINTOOL" : "STANDALONE", mem_op_type == WRITE ? "Write" : "Read");
+   //nativeMemOp (NONE, mem_op_type, d_addr, data_buffer, data_size);
+
    // In PINTOOL mode, if the data is requested, copy it to/from real memory
    if (data_buffer && !is_fault_mask)
    {
+      printf("[NVMSIM][INFO ][CORE ] 0x%08lx [%s]\n", d_addr, mem_op_type == WRITE ? "Write" : "Read");
       if (Sim()->getConfig()->getSimulationMode() == Config::PINTOOL)
       {
          nativeMemOp (NONE, mem_op_type, d_addr, data_buffer, data_size);

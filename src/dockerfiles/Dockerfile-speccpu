@@ -1,0 +1,11 @@
+FROM opensuse/leap:15.2
+
+# For CPU2006
+RUN zypper --non-interactive install \
+    gcc \
+    gdb \
+    git
+
+# Helper utilities
+RUN zypper --non-interactive install \
+    vim

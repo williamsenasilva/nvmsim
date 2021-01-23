@@ -64,7 +64,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    SubsecondTime processing_time = m_dram_bandwidth.getRoundedLatency(8 * pkt_size); // bytes to bits
 
    // Compute Queue Delay
-   SubsecondTime queue_delay;
+   SubsecondTime queue_delay, access_latency_from_nvmain;
    if (m_queue_model)
    {
       queue_delay = m_queue_model->computeQueueDelay(pkt_time, processing_time, requester);
@@ -100,7 +100,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += ss_address.str();
          message_to_nvmain += " ";
 
-         for(UInt32 i = 0; i < pkt_size; ++i)
+         for(UInt32 i = 0; i < pkt_size; i++)
          {
             char hex[3];
             snprintf(hex, 3, "%02x", data_buf[i]);
@@ -110,6 +110,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += ss_data.str();
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
+
          printf("[NVMSIM][INFO ][SEND ] %s\n", message_to_nvmain.c_str());
          message_to_nvmain += "\n";
 
@@ -133,6 +134,8 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
                   message_from_nvmain += buffer[ index++ ];
 
                printf("[NVMSIM][INFO ][RCIVE] %s\n", message_from_nvmain.c_str());
+
+               access_latency_from_nvmain = SubsecondTime::NS(atoi(message_from_nvmain.c_str()));
             }
             else
             {
@@ -155,7 +158,14 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    m_total_access_latency += access_latency;
    m_total_queueing_delay += queue_delay;
 
-   printf("[NVMSIM][INFO ][LTNCY] %" PRIu64 "\n", access_latency.getNS());
-   return access_latency;
+   /* todo: remove this debug block
+   if(access_type != 0)
+      printf("[NVMSIM][DEBUG][LTNCY] 0x%08lx [latency_nvmain: %" PRIu64 " ns, latency_sniper: %" PRIu64 " ns]\n", address, access_latency_from_nvmain.getNS(), access_latency.getNS());
+   */
+
+   // original return from sniper
+   // return access_latency;
+
+   return access_latency_from_nvmain;
 }
 

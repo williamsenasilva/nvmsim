@@ -35,6 +35,9 @@ Exemplo
 git clone git@github.com:SEAL-UCSB/NVmain.git
 ```
 
+- #### Download do SPEC CPU 2006
+Monte a imagem .iso no host. Preencha SPECCPU_PATH do arquivo .env com o caminho da imagem montada no arquivo. 
+
 - #### Criar e configurar arquivo .env
 Crie um arquivo .env dentro da raíz do projeto com o comando abaixo
 ```bash
@@ -47,11 +50,22 @@ Exemplo:
 SNIPER_PATH=/home/william/Downloads/sniper-7.2
 PINPLAY_PATH=/home/william/Downloads/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
 NVMAIN_PATH=/home/william/Downloads/NVmain
+SPECCPU_PATH=/run/media/william/SPEC_CPU2006v1.2
+SNIPER_TARGET_ARCH=intel64
+ENABLE_SNIPER=1
+ENABLE_NVMAIN=1
+ENABLE_SPECCPU=1
 ```
 
 - #### Construir imagens Docker
 ```bash
-sh nvmsim.sh build
+sh nvmsim.sh build-images
+```
+
+- #### Construir ambientes
+obs: Arquivos existentes serão removidos e um novo ambiente será recriado do zero 
+```bash
+sh nvmsim.sh build-envs
 ```
 
 ## Testes
@@ -59,7 +73,7 @@ sh nvmsim.sh build
 - #### Inicializar containers e rodar trace
 
 ```bash
-sh nvmsim.sh
+sh nvmsim.sh run
 ```
 
 - #### Parar containers

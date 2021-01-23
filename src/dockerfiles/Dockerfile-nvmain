@@ -7,5 +7,12 @@ RUN apt-get update && apt-get install -y \
     scons \
     && rm -rf /var/lib/apt/lists/*
 
+# Helper utilities
+RUN apt-get update && apt-get install -y \
+    gdb \
+    git \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set environment values and alias
 ENV NVMSIM="sniper"

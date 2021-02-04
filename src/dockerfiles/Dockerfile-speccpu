@@ -1,8 +1,10 @@
-FROM opensuse/leap:15.2
+FROM opensuse/leap:42.3
 
 # For CPU2006
 RUN zypper --non-interactive install \
     gcc \
+    gcc-c++ \
+    gcc-fortran \
     gdb \
     git
 

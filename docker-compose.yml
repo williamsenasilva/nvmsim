@@ -9,7 +9,10 @@ services:
     container_name: sniper
     environment:
       SNIPER_TARGET_ARCH: ${SNIPER_TARGET_ARCH}
+      SNIPER_MEMORY_TYPE: ${SNIPER_MEMORY_TYPE}
       ENABLE_SNIPER: ${ENABLE_SNIPER}
+      NVMSIM_NVM_CONFIG_FILE: ${NVMSIM_NVM_CONFIG_FILE}
+      TZ: "America/Sao_Paulo"
     privileged: true
     volumes:
       - ./shared/sniper:/opt/sniper
@@ -31,11 +34,13 @@ services:
     container_name: nvmain
     environment:
       ENABLE_NVMAIN: ${ENABLE_NVMAIN}
+      NVMSIM_NVM_CONFIG_FILE: ${NVMSIM_NVM_CONFIG_FILE}
+      TZ: "America/Sao_Paulo"
     privileged: true
     volumes:
       - ./shared/nvmain:/opt/nvmain
       - ./src/entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
-      - ./shared/nvmsim:/mnt/nvmsim
+      - ./shared/nvmsim/:/mnt/nvmsim/
     depends_on:
       - sniper
     networks:
@@ -55,9 +60,10 @@ services:
       ENABLE_SPECCPU: ${ENABLE_SPECCPU}
     privileged: true
     volumes:
-      - ./shared/speccpu:/opt/speccpu
       - ./src/entrypoints/entrypoint-speccpu.sh:/usr/local/bin/entrypoint.sh
       - ${SPECCPU_PATH}:/mnt/dvd
+      - ./shared/speccpu:/mnt/speccpu
+      - ./shared/nvmsim:/mnt/nvmsim
     networks:
       - nvmsim-network
     ports:

@@ -39,6 +39,12 @@
 #include <iostream>
 #include <fstream>
 
+/*
+#ifndef NVMSIM_DEBUG
+#define NVMSIM_DEBUG
+#endif
+*/
+
 namespace NVM {
 
 class SniperTraceReader : public GenericTraceReader

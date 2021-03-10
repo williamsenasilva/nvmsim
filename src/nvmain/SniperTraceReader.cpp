@@ -52,7 +52,6 @@ using namespace NVM;
 
 SniperTraceReader::SniperTraceReader( )
 {
-    //printf("[NVMSIM][DEBUG] SniperTraceReader( )\n");
     tracefile = "";
 
     traceVersion = 0;
@@ -61,14 +60,13 @@ SniperTraceReader::SniperTraceReader( )
 
 SniperTraceReader::~SniperTraceReader( )
 {
-    //printf("[NVMSIM][DEBUG] ~SniperTraceReader( )\n");
     if( trace.is_open( ) )
         trace.close( );
 }
 
 void SniperTraceReader::SetTraceFile( std::string file )
 {
-    printf("[NVMSIM][DEBUG] SetTraceFile(file: %s)\n", file.c_str());
+    printf("[NVMSIM][INFO ][TFILE] set trace file: %s\n", file.c_str());
     tracefile = file;
     mkfifo(tracefile.c_str(), 0666);
 }
@@ -114,9 +112,10 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
             int index = 0;
             while (buffer[ index ] != '\n')
                 message_from_sniper += buffer[ index++ ];
-            
-            printf("[NVMSIM][INFO ][RCIVE] %s\n", message_from_sniper.c_str());
 
+#ifdef NVMSIM_DEBUG
+            printf("[NVMSIM][DEBUG][RCIVE] %s\n", message_from_sniper.c_str());
+#endif
             std::istringstream lineStream( message_from_sniper );
             std::string field;
             unsigned char fieldId = 0;
@@ -224,7 +223,7 @@ bool SniperTraceReader::GetNextAccess( TraceLine *nextAccess )
         }
         else
         {
-            printf("[NVMSIM][ERROR] Error on read message\n");
+            printf("[NVMSIM][ERROR][READ ] Error on read message\n");
             return false;      
         }
         close(fd); 
@@ -281,7 +280,9 @@ bool SniperTraceReader::Read()
 
 bool SniperTraceReader::Write(uint64_t latency)
 {
-    //printf("[NVMSIM][DEBUG] Write(latency: %" PRIu64 ")\n", latency);
+#ifdef NVMSIM_TRACE
+   printf("[NVMSIM][TRACE][WRITE] latency: %" PRIu64 "\n", latency);
+#endif
     int fd, response = 0;
     fd = open(tracefile.c_str(), O_WRONLY);
     if(fd != -1)
@@ -290,13 +291,15 @@ bool SniperTraceReader::Write(uint64_t latency)
         ss_latency << latency;
         message_to_sniper = "";
         message_to_sniper += ss_latency.str();
-        printf("[NVMSIM][INFO ][SEND ] %s\n", message_to_sniper.c_str());
+#ifdef NVMSIM_DEBUG
+        printf("[NVMSIM][DEBUG][SEND ] %s\n", message_to_sniper.c_str());
+#endif
         message_to_sniper += "\n";
 
         response = write(fd, message_to_sniper.c_str(), message_to_sniper.length()); 
         if(!response)
         {
-            printf("[NVMSIM][ERROR] Error on writing message\n");
+            printf("[NVMSIM][ERROR][WRITE] Error on writing message\n");
         }
         close(fd); 
     }

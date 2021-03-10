@@ -111,13 +111,15 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
          message_to_nvmain += " ";
          message_to_nvmain += ss_requester.str();
 
-         printf("[NVMSIM][INFO ][SEND ] %s\n", message_to_nvmain.c_str());
+#ifdef NVMSIM_DEBUG
+         printf("[NVMSIM][DEBUG][SEND ] %s\n", message_to_nvmain.c_str());
+#endif
          message_to_nvmain += "\n";
 
          response = write(fd, message_to_nvmain.c_str(), message_to_nvmain.length());
          if(!response)
          {
-            printf("[NVMSIM][ERROR] Error on writing message\n");
+            printf("[NVMSIM][ERROR][WRITE] Error on writing message\n");
          }
          close(fd);
 
@@ -132,14 +134,14 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
                int index = 0;
                while (buffer[ index ] != '\n')
                   message_from_nvmain += buffer[ index++ ];
-
-               printf("[NVMSIM][INFO ][RCIVE] %s\n", message_from_nvmain.c_str());
-
+#ifdef NVMSIM_DEBUG
+               printf("[NVMSIM][DEBUG][RCIVE] %s\n", message_from_nvmain.c_str());
+#endif
                access_latency_from_nvmain = SubsecondTime::NS(atoi(message_from_nvmain.c_str()));
             }
             else
             {
-               printf("[NVMSIM][ERROR] Error on reading message\n");
+               printf("[NVMSIM][ERROR][READ ] Error on reading message\n");
             }
             close(fd);
          }
@@ -158,13 +160,10 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    m_total_access_latency += access_latency;
    m_total_queueing_delay += queue_delay;
 
-   /* todo: remove this debug block
+#ifdef NVMSIM_TRACE
    if(access_type != 0)
-      printf("[NVMSIM][DEBUG][LTNCY] 0x%08lx [latency_nvmain: %" PRIu64 " ns, latency_sniper: %" PRIu64 " ns]\n", address, access_latency_from_nvmain.getNS(), access_latency.getNS());
-   */
-
-   // original return from sniper
-   // return access_latency;
+      printf("[NVMSIM][TRACE][LTNCY] 0x%08lx [latency_nvmain: %" PRIu64 " ns, latency_sniper: %" PRIu64 " ns]\n", address, access_latency_from_nvmain.getNS(), access_latency.getNS());
+#endif
 
    return access_latency_from_nvmain;
 }

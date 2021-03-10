@@ -8,6 +8,12 @@
 #include "dram_cntlr_interface.h"
 #include <fstream>
 
+/*
+#ifndef NVMSIM_DEBUG
+#define NVMSIM_DEBUG
+#endif
+*/
+
 class DramPerfModelNVM : public DramPerfModel
 {
 private:

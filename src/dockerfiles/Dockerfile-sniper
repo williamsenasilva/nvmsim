@@ -49,6 +49,11 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# For SPEC Tests
+RUN apt-get update && apt-get install -y \
+   libgfortran3 \
+   && rm -rf /var/lib/apt/lists/*
+
 # Helper utilities
 RUN apt-get update && apt-get install -y \
     gdb \

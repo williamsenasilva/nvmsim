@@ -11,3 +11,7 @@ RUN zypper --non-interactive install \
 # Helper utilities
 RUN zypper --non-interactive install \
     vim
+
+WORKDIR /opt/speccpu
+
+ENTRYPOINT ["/bin/bash"]

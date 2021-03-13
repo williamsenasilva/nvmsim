@@ -66,3 +66,7 @@ ENV SNIPER_HOME=/opt/sniper
 ENV PIN_HOME=/opt/pinplay
 RUN echo "alias run-sniper='/opt/sniper/run-sniper'" >> ~/.bashrc
 RUN echo "alias test-sniper='cd /opt/sniper/test/fft; make run'" >> ~/.bashrc
+
+WORKDIR /opt/sniper
+
+ENTRYPOINT ["/bin/bash"]

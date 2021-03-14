@@ -11,7 +11,6 @@
 #include <unistd.h>
 
 #define MAX 80
-#define PORT 2000
 
 DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
         DramPerfModel(core_id, cache_block_size),
@@ -20,7 +19,7 @@ DramPerfModelNVM::DramPerfModelNVM(core_id_t core_id, UInt32 cache_block_size) :
         m_total_queueing_delay(SubsecondTime::Zero()),
         m_total_access_latency(SubsecondTime::Zero())
 {
-   tracefile = "/mnt/nvmsim/tracefile";
+   tracefile = getenv ("NVMSIM_TRACEFILE_PATH");
    mkfifo(tracefile.c_str(), 0666);
 
    m_dram_access_cost = SubsecondTime::FS() * static_cast<uint64_t>(TimeConverter<float>::NStoFS(Sim()->getCfg()->getFloat("perf_model/dram/latency"))); // Operate in fs for higher precision before converting to uint64_t/SubsecondTime

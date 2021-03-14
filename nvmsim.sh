@@ -33,7 +33,7 @@ function run
 
   if [ $nvmsim_script_action == build-images ]; then
     docker-compose down
-    docker-compose build
+    docker-compose build ${docker_compose_optional_arg}
 
     message_action="[CHECK]"
     if [ ! -d "${SPECCPU_PATH}" ]; then
@@ -62,7 +62,14 @@ function run
     docker-compose down
     copy_source_files
     rm -rf ${path}/shared/nvmsim/logs/
-    docker-compose up -d && docker-compose logs -f
+
+    IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"
+    instances=${#config_files[@]}
+    command="docker-compose up -d --scale sniper=$instances --scale nvmain=$instances"
+    echo "#${instance_number} (${config_files[$index]}) - $command"
+    eval $command
+    
+    docker-compose logs -f
   elif [ $nvmsim_script_action == stop ]; then
     docker-compose down
   else
@@ -154,5 +161,5 @@ function copy_source_files
     echo "ok"
   fi
 }
-
+ 
 run

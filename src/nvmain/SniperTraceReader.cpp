@@ -46,7 +46,6 @@
 #include <inttypes.h>
 
 #define MAX 80
-#define PORT 7200
 
 using namespace NVM;
 

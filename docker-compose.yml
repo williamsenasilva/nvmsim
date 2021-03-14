@@ -6,12 +6,11 @@ services:
       dockerfile: ./src/dockerfiles/Dockerfile-sniper
       context: .
     image: nvmsim/sniper:latest
-    container_name: sniper
     environment:
+      ENABLE_SNIPER: ${ENABLE_SNIPER}
       SNIPER_TARGET_ARCH: ${SNIPER_TARGET_ARCH}
       SNIPER_MEMORY_TYPE: ${SNIPER_MEMORY_TYPE}
-      ENABLE_SNIPER: ${ENABLE_SNIPER}
-      NVMSIM_NVM_CONFIG_FILE: ${NVMSIM_NVM_CONFIG_FILE}
+      NVMAIN_CONFIG_FILES: ${NVMAIN_CONFIG_FILES}
       TZ: "America/Sao_Paulo"
     privileged: true
     volumes:
@@ -21,8 +20,6 @@ services:
       - ./shared/nvmsim:/mnt/nvmsim
     networks:
       - nvmsim-network
-    ports:
-      - "7200:7200"
     command:
       - entrypoint.sh
   ##### NVMAIN SERVICE #####
@@ -31,10 +28,9 @@ services:
       dockerfile: ./src/dockerfiles/Dockerfile-nvmain
       context: .
     image: nvmsim/nvmain:latest
-    container_name: nvmain
     environment:
       ENABLE_NVMAIN: ${ENABLE_NVMAIN}
-      NVMSIM_NVM_CONFIG_FILE: ${NVMSIM_NVM_CONFIG_FILE}
+      NVMAIN_CONFIG_FILES: ${NVMAIN_CONFIG_FILES}
       TZ: "America/Sao_Paulo"
     privileged: true
     volumes:
@@ -45,8 +41,6 @@ services:
       - sniper
     networks:
       - nvmsim-network
-    ports:
-      - "2000:2000"
     command:
       - entrypoint.sh
   ##### SPEC CPU SERVICE #####
@@ -66,8 +60,6 @@ services:
       - ./shared/nvmsim:/mnt/nvmsim
     networks:
       - nvmsim-network
-    ports:
-      - "2006:2006"
     command:
       - entrypoint.sh
 networks:

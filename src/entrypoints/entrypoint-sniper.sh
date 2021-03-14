@@ -15,21 +15,23 @@ message_warn="[NVMSIM][${YELLOW}WARN${NOCOLOR} ]"
 message_erro="[NVMSIM][${RED}ERROR${NOCOLOR}]"
 message_done="[NVMSIM][${GREEN}DONE${NOCOLOR} ]"
 
-function run
+function get_container_number
 {
-  message_action="[RUNEP]"
-  message="Sniper Docker entrypoint started."
-  echo "${message_info}${message_action} ${message}"
-  
-  check_sniper_requirements
-  set_timezone
-  # run_sniper
-  run_sniper_with_speccpu_commands
-  
-  message_action="[RUNEP]"
-  message="Sniper Docker entrypoint finished."
-  echo "${message_info}${message_action} ${message}"
-  tail -f /dev/null
+  # from: https://stackoverflow.com/questions/60480257/how-to-simply-scale-a-docker-compose-service-and-pass-the-index-and-count-to-eac
+
+  # get the container IP
+  IP=`ifconfig eth0 | grep 'inet ' | awk '{print $2}'`
+
+  # get the service name you specified in the docker-compose.yml 
+  # by a reverse DNS lookup on the IP
+  SERVICE=`dig -x $IP +short | cut -d'_' -f2`
+
+  # the number of replicas is equal to the A records 
+  # associated with the service name
+  COUNT=`dig $SERVICE +short | wc -l`
+
+  # extract the replica number from the same PTR entry
+  INSTANCE_INDEX=`dig -x $IP +short | sed 's/.*_\([0-9]*\)\..*/\1/'`
 }
 
 function set_timezone
@@ -120,10 +122,19 @@ function run_sniper_with_speccpu_commands
         cd /mnt/nvmsim/speccpu/${benchmark} || exit 0
         message_action="[BMARK]"
 
-        current_date_time="`date +%Y-%m-%d-%H-%M-%S`"
+        current_date_time="`date +%Y-%m-%d-%Hh%Mm%Ss`"
 
         if [ $SNIPER_MEMORY_TYPE = NVM ]; then
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/nvmain-${NVMSIM_NVM_CONFIG_FILE}-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
+          get_container_number
+          IFS=', ' read -r -a nvmain_config_files <<< "${NVMAIN_CONFIG_FILES}"
+          array_index=$(expr $INSTANCE_INDEX - 1)
+          nvmain_config_file=${nvmain_config_files[$array_index]}
+          command="export NVMSIM_TRACEFILE_PATH=/mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX}"
+          message="command: $command"
+          echo "${message_info}${message_action} ${message}"
+          eval $command
+
+          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/nvmain-${nvmain_config_file}-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command
@@ -150,6 +161,24 @@ function run_sniper_with_speccpu_commands
   message_action="[GCMDS]"
   message="Getting speccpu commands."
   echo "${message_info}${message_action} ${message}"
+}
+
+
+function run
+{
+  message_action="[RUNEP]"
+  message="Sniper Docker entrypoint started."
+  echo "${message_info}${message_action} ${message}"
+  
+  check_sniper_requirements
+  set_timezone
+  # run_sniper
+  run_sniper_with_speccpu_commands
+  
+  message_action="[RUNEP]"
+  message="Sniper Docker entrypoint finished."
+  echo "${message_info}${message_action} ${message}"
+  tail -f /dev/null
 }
 
 run

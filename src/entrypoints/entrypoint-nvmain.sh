@@ -40,14 +40,26 @@ function run
   
   if [ $ENABLE_NVMAIN == 1 ]; then
     cd /opt/nvmain || exit 0
-    #scons --build-type=fast
-    #scons --build-type=prof
-    #scons --build-type=debug
-
+    
     get_container_number
+    
+    if [ $INSTANCE_INDEX == 1 ]; then
+      scons --build-type=fast
+      scons --build-type=prof
+      scons --build-type=debug
+      touch /mnt/nvmsim/nvmain-ready
+    fi
+
+    while [ ! -f /mnt/nvmsim/nvmain-ready ]; do 
+      message="NVMain main container is busy, wait 10s."
+      echo "${message_info}${message_action} ${message}"
+      sleep 10s
+    done
+
     IFS=', ' read -r -a nvmain_config_files <<< "${NVMAIN_CONFIG_FILES}"
     array_index=$(expr $INSTANCE_INDEX - 1)
     nvmain_config_file=${nvmain_config_files[$array_index]}
+
     command="./nvmain.debug Config/${nvmain_config_file} /mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX} 0 TraceReader=SniperTrace"
     message="command: ${command}"
     echo "${message_info}${message_action} ${message}"
@@ -55,7 +67,6 @@ function run
     
     message="NVMain Docker entrypoint finished."
     echo "${message_info}${message_action} ${message}"
-    tail -f /dev/null
   else
     message="NVMain Docker entrypoint disabled."
     echo -e "${message_warn}${message_action} ${message}"

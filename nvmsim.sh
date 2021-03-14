@@ -53,20 +53,26 @@ function run
     echo "ok"
 
     docker-compose build speccpu
-  elif [ $nvmsim_script_action == build-envs ]; then
-    docker-compose down
-    copy_third_source_files
-    remove_gem5_dependency
-    docker-compose up -d && docker-compose logs -f
   elif [ $nvmsim_script_action == run ]; then
     docker-compose down
+    remove_gem5_dependency
     copy_source_files
+    
     rm -rf ${path}/shared/nvmsim/logs/
+    
+    if test -f "${path}/shared/nvmsim/nvmain-ready"; then
+      rm ${path}/shared/nvmsim/nvmain-ready
+    fi
+
+    if test -f "${path}/shared/nvmsim/sniper-ready"; then
+      rm ${path}/shared/nvmsim/sniper-ready
+    fi
 
     IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"
     instances=${#config_files[@]}
     command="docker-compose up -d --scale sniper=$instances --scale nvmain=$instances"
-    echo "#${instance_number} (${config_files[$index]}) - $command"
+    message="command: ${command}"
+    echo "${message_info}${message_action} ${message}"
     eval $command
     
     docker-compose logs -f

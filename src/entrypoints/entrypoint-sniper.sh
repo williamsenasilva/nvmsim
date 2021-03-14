@@ -62,40 +62,52 @@ function run_sniper
 function run_sniper_with_speccpu_commands
 {
   cd /opt/sniper || exit 0
-  make -j $(nproc)
+
+  get_container_number
+    
+  if [ $INSTANCE_INDEX == 1 ]; then
+    make -j $(nproc)
+    touch /mnt/nvmsim/sniper-ready
+  fi
+
+  while [ ! -f /mnt/nvmsim/sniper-ready ]; do 
+    message="Sniper main container is busy, wait 10s."
+    echo "${message_info}${message_action} ${message}"
+    sleep 10s
+  done
   
   benchmarks=(
-    400.perlbench
-    401.bzip2
-    403.gcc
-    410.bwaves
-    416.gamess
-    429.mcf
-    433.milc
-    434.zeusmp
-    435.gromacs
-    436.cactusADM
-    437.leslie3d
-    444.namd
-    445.gobmk
-    447.dealII
-    450.soplex
-    453.povray
-    454.calculix
-    456.hmmer
-    458.sjeng
-    459.GemsFDTD
-    462.libquantum
-    464.h264ref
-    465.tonto
-    470.lbm
-    471.omnetpp
-    473.astar
-    481.wrf
-    482.sphinx3
-    483.xalancbmk
-    998.specrand
     999.specrand
+    998.specrand
+    483.xalancbmk
+    482.sphinx3
+    481.wrf
+    473.astar
+    471.omnetpp
+    470.lbm
+    465.tonto
+    464.h264ref
+    462.libquantum
+    459.GemsFDTD
+    458.sjeng
+    456.hmmer
+    454.calculix
+    453.povray
+    450.soplex
+    447.dealII
+    445.gobmk
+    444.namd
+    437.leslie3d
+    436.cactusADM
+    435.gromacs
+    434.zeusmp
+    433.milc
+    429.mcf
+    416.gamess
+    410.bwaves
+    403.gcc
+    401.bzip2
+    400.perlbench
   )
 
   message_action="[GCMDS]"
@@ -124,8 +136,8 @@ function run_sniper_with_speccpu_commands
 
         current_date_time="`date +%Y-%m-%d-%Hh%Mm%Ss`"
 
-        if [ $SNIPER_MEMORY_TYPE = NVM ]; then
-          get_container_number
+        if [ $SNIPER_MEMORY_TYPE == NVM ]; then
+          
           IFS=', ' read -r -a nvmain_config_files <<< "${NVMAIN_CONFIG_FILES}"
           array_index=$(expr $INSTANCE_INDEX - 1)
           nvmain_config_file=${nvmain_config_files[$array_index]}
@@ -134,11 +146,11 @@ function run_sniper_with_speccpu_commands
           echo "${message_info}${message_action} ${message}"
           eval $command
 
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/nvmain-${nvmain_config_file}-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
+          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command
-        elif [ $SNIPER_MEMORY_TYPE = RAM ]; then
+        elif [ $SNIPER_MEMORY_TYPE == RAM ]; then
           command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/sniper-DRAM-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
@@ -178,7 +190,6 @@ function run
   message_action="[RUNEP]"
   message="Sniper Docker entrypoint finished."
   echo "${message_info}${message_action} ${message}"
-  tail -f /dev/null
 }
 
 run

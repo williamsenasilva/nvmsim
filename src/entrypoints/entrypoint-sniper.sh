@@ -146,12 +146,12 @@ function run_sniper_with_speccpu_commands
           echo "${message_info}${message_action} ${message}"
           eval $command
 
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
+          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command
         elif [ $SNIPER_MEMORY_TYPE == RAM ]; then
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/${benchmark}/sniper-DRAM-test-${count}-${current_date_time}/logs -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
+          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/sniper-DRAM-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command

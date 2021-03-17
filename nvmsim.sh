@@ -61,11 +61,11 @@ function run
     rm -rf ${path}/shared/nvmsim/logs/
     
     if test -f "${path}/shared/nvmsim/nvmain-ready"; then
-      rm ${path}/shared/nvmsim/nvmain-ready
+      rm -f ${path}/shared/nvmsim/nvmain-ready
     fi
 
     if test -f "${path}/shared/nvmsim/sniper-ready"; then
-      rm ${path}/shared/nvmsim/sniper-ready
+      rm -f ${path}/shared/nvmsim/sniper-ready
     fi
 
     IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"

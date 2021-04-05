@@ -67,6 +67,7 @@ function run
     
     message="NVMain Docker entrypoint finished."
     echo "${message_info}${message_action} ${message}"
+    tail -f /dev/null
   else
     message="NVMain Docker entrypoint disabled."
     echo -e "${message_warn}${message_action} ${message}"

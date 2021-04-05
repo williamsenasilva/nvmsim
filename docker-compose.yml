@@ -3,7 +3,7 @@ services:
   ##### SNIPER SERVICE #####
   sniper:
     build:
-      dockerfile: ./src/dockerfiles/Dockerfile-sniper
+      dockerfile: ./dockerfiles/Dockerfile-sniper
       context: .
     image: nvmsim/sniper:latest
     environment:
@@ -16,7 +16,7 @@ services:
     volumes:
       - ./shared/sniper:/opt/sniper
       - ./shared/pinplay:/opt/pinplay
-      - ./src/entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
+      - ./entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
       - ./shared/nvmsim:/mnt/nvmsim
     networks:
       - nvmsim-network
@@ -25,7 +25,7 @@ services:
   ##### NVMAIN SERVICE #####
   nvmain:
     build:
-      dockerfile: ./src/dockerfiles/Dockerfile-nvmain
+      dockerfile: ./dockerfiles/Dockerfile-nvmain
       context: .
     image: nvmsim/nvmain:latest
     environment:
@@ -35,7 +35,7 @@ services:
     privileged: true
     volumes:
       - ./shared/nvmain:/opt/nvmain
-      - ./src/entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
+      - ./entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
       - ./shared/nvmsim/:/mnt/nvmsim/
     depends_on:
       - sniper
@@ -46,7 +46,7 @@ services:
   ##### SPEC CPU SERVICE #####
   speccpu:
     build:
-      dockerfile: ./src/dockerfiles/Dockerfile-speccpu
+      dockerfile: ./dockerfiles/Dockerfile-speccpu
       context: .
     image: nvmsim/speccpu:latest
     container_name: speccpu
@@ -54,7 +54,7 @@ services:
       ENABLE_SPECCPU: ${ENABLE_SPECCPU}
     privileged: true
     volumes:
-      - ./src/entrypoints/entrypoint-speccpu.sh:/usr/local/bin/entrypoint.sh
+      - ./entrypoints/entrypoint-speccpu.sh:/usr/local/bin/entrypoint.sh
       - ${SPECCPU_PATH}:/mnt/dvd
       - ./shared/speccpu:/mnt/speccpu
       - ./shared/nvmsim:/mnt/nvmsim

@@ -146,13 +146,20 @@ function run_sniper_with_speccpu_commands
           echo "${message_info}${message_action} ${message}"
           eval $command
 
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
-          message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
+          # put sniper on scale mode
+          if [ $nvmain_config_file != DISABLE ]; then
+            command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
+            message="Benchmark ${benchmark} (${count}) started. command: ${command}"
+          else 
+            command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
+            message="Benchmark ${benchmark} (${count}) started. command: ${command}"  
+          fi
+
           echo "${message_info}${message_action} ${message}"
           eval $command
         elif [ $SNIPER_MEMORY_TYPE == RAM ]; then
           command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/sniper-DRAM-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
-          message="Benchmark ${benchmark} nvmain (${count}) started. command: ${command}"
+          message="Benchmark ${benchmark} (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command
         else
@@ -160,7 +167,7 @@ function run_sniper_with_speccpu_commands
           echo -e "${message_erro}${message_action} ${message}"
           exit 0
         fi
-        message="Benchmark ${benchmark} nvmain (${count}) finished."
+        message="Benchmark ${benchmark} (${count}) finished."
         echo -e "${message_done}${message_action} ${message}"
 
         count=$((count + 1))

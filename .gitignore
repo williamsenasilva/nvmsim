@@ -1,12 +1,5 @@
 .idea/
 .vscode/
-.env
 vendor/
-shared/nvmsim
-shared/nvmain
-shared/sniper
-shared/pinplay
-shared/speccpu
-shared/vendor
-shared/bin
-
+shared/
+.env

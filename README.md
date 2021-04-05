@@ -85,3 +85,7 @@ sh nvmsim.sh stop
 ## Documentação
 
 A documentação está disponível na [Wiki](https://gitlab.com/williamsenasilva/nvmsim/wikis/home)
+
+## GDB
+ddd -> gui gdb
+eclipse 

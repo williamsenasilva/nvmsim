@@ -148,7 +148,7 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
       }
    }
 
-   SubsecondTime access_latency = queue_delay + processing_time + m_dram_access_cost;
+   // SubsecondTime access_latency = queue_delay + processing_time + m_dram_access_cost;
 
    perf->updateTime(pkt_time);
    perf->updateTime(pkt_time + queue_delay, ShmemPerf::DRAM_QUEUE);
@@ -164,9 +164,10 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
    if(access_type != 0)
       printf("[NVMSIM][TRACE][LTNCY] 0x%08lx [latency_nvmain: %" PRIu64 " ns, latency_sniper: %" PRIu64 " ns]\n", address, access_latency_from_nvmain.getNS(), access_latency.getNS());
 #endif
-
-   assert(m_total_access_latency.getNS() >= 0);
-   assert(access_latency_from_nvmain.getNS() >= 0);
+   
+   unsigned int zero = 0;
+   assert(m_total_access_latency.getNS() >= zero);
+   assert(access_latency_from_nvmain.getNS() >= zero);
 
    return access_latency_from_nvmain;
 }

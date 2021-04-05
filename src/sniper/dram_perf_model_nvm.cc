@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <assert.h>
 
 #define MAX 80
 
@@ -156,13 +157,15 @@ SubsecondTime DramPerfModelNVM::getAccessLatency(SubsecondTime pkt_time, UInt64 
 
    // Update Memory Counters
    m_num_accesses++;
-   m_total_access_latency += access_latency;
+   m_total_access_latency += access_latency_from_nvmain;
    m_total_queueing_delay += queue_delay;
 
 #ifdef NVMSIM_TRACE
    if(access_type != 0)
       printf("[NVMSIM][TRACE][LTNCY] 0x%08lx [latency_nvmain: %" PRIu64 " ns, latency_sniper: %" PRIu64 " ns]\n", address, access_latency_from_nvmain.getNS(), access_latency.getNS());
 #endif
+
+   assert(access_latency_from_nvmain.getNS() >= 0);
 
    return access_latency_from_nvmain;
 }

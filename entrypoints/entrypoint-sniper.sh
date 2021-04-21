@@ -76,6 +76,7 @@ function run_sniper_with_speccpu_commands
     sleep 10s
   done
   
+  # 464.h264ref core dump Hybrid
   benchmarks=(
     999.specrand
     998.specrand
@@ -86,7 +87,6 @@ function run_sniper_with_speccpu_commands
     471.omnetpp
     470.lbm
     465.tonto
-    464.h264ref
     462.libquantum
     459.GemsFDTD
     458.sjeng
@@ -147,18 +147,18 @@ function run_sniper_with_speccpu_commands
           eval $command
 
           # put sniper on scale mode
-          if [ $nvmain_config_file != DISABLE ]; then
-            command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
+          if [ $nvmain_config_file != SNIPER ]; then
+            command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
             message="Benchmark ${benchmark} (${count}) started. command: ${command}"
           else 
-            command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
+            command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
             message="Benchmark ${benchmark} (${count}) started. command: ${command}"  
           fi
 
           echo "${message_info}${message_action} ${message}"
           eval $command
         elif [ $SNIPER_MEMORY_TYPE == RAM ]; then
-          command="/opt/sniper/run-sniper -d /mnt/nvmsim/speccpu/tests/${benchmark}/sniper-DRAM-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
+          command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/sniper-DRAM-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
           message="Benchmark ${benchmark} (${count}) started. command: ${command}"
           echo "${message_info}${message_action} ${message}"
           eval $command

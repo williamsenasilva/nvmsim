@@ -100,6 +100,8 @@ function copy_source_files
         cp ${path}/src/nvmain/3D_DRAM_example.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/PCM_MLC_example.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/Hybrid_example.config ${path}/shared/nvmain/Config/
+        cp ${path}/src/nvmain/RRAM_ISSCC_2012_4GB.config ${path}/shared/nvmain/Config/
+        cp ${path}/src/nvmain/STTRAM_Everspin_4GB.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim/
 
         echo "ok"
@@ -185,11 +187,11 @@ function show_logs
 
 function start_services
 {
-    docker-compose down
     remove_gem5_dependency
     copy_source_files
     
     rm -rf ${path}/shared/nvmsim/logs/
+    rm ${path}/shared/nvmsim/tracefile*.*
     
     if test -f "${path}/shared/nvmsim/nvmain-ready"; then
         rm -f ${path}/shared/nvmsim/nvmain-ready

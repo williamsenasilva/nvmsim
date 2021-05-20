@@ -76,7 +76,6 @@ function run_sniper_with_speccpu_commands
     sleep 10s
   done
   
-  # 464.h264ref core dump Hybrid
   benchmarks=(
     999.specrand
     998.specrand
@@ -87,6 +86,7 @@ function run_sniper_with_speccpu_commands
     471.omnetpp
     470.lbm
     465.tonto
+    464.h264ref
     462.libquantum
     459.GemsFDTD
     458.sjeng

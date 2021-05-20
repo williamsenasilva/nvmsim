@@ -99,7 +99,6 @@ function copy_source_files
         cp ${path}/src/nvmain/2D_DRAM_example.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/3D_DRAM_example.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/PCM_MLC_example.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/Hybrid_example.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/RRAM_ISSCC_2012_4GB.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/STTRAM_Everspin_4GB.config ${path}/shared/nvmain/Config/
         cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim/

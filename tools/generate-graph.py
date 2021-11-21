@@ -6,11 +6,9 @@ import sys
 import os.path
 import numpy as np
 import pandas as pd
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import random
 
-#benchmark_names = ["astar","bwaves","bzip2","gamess","gcc","gobmk","h264ref","hmmer","libquantum","mcf","omnetpp","perlbench","sjeng","specrand","xalancbmk"]
 benchmark_names = ["astar","gamess","gobmk","h264ref","hmmer","libquantum","mcf","omnetpp","sjeng","specrand","xalancbmk"]
 memories = ["2D_DRAM","3D_DRAM","PCM","RRAM","STTRAM"]
 confidence_percentage = 95
@@ -107,10 +105,11 @@ class Simulation:
                                     measure_latency = line.split("|",1)[1].replace(" ","").replace("\n","")
                             data = (sim_dot_out_path,measure_time, measure_latency)
                             benchmark.sim_dot_out_sttram_files.append(data)
-    
+
     def make_dataframe(self):
         for benchmark in self.benchmarks:
             times = []
+            normalized_times = []
             latencies = []
             time_mean = 0
             latency_mean = 0
@@ -120,7 +119,9 @@ class Simulation:
             print("├──── MEASURES ({})".format(meanings))
             for index, sim_dot_out_file in enumerate(benchmark.sim_dot_out_2dram_files):
                 filename, time_in_ns, latency_in_ns = (sim_dot_out_file)
+                time_in_ns_of_2dram = int(benchmark.sim_dot_out_2dram_files[index][1])
                 times.append(int(time_in_ns))
+                normalized_times.append(int(time_in_ns) / time_in_ns_of_2dram)
                 time_mean += int(time_in_ns)
                 latencies.append(float(latency_in_ns))
                 latency_mean += float(latency_in_ns)
@@ -129,7 +130,7 @@ class Simulation:
                 else:
                     print("│     └── time: {} | latency: {} | file: {}".format(time_in_ns, latency_in_ns, filename.split("simulations/",1)[1].replace(" ","")))
             time_mean = time_mean / meanings
-            time_err = calc_ci_using_bootstrap(times)
+            time_err = calc_ci_using_bootstrap(normalized_times)
             latency_mean = round((latency_mean / meanings), 2)
             latency_err = round(calc_ci_using_bootstrap(latencies), 2)
             line = [benchmark.name, "2D_RAM", time_mean, latency_mean, time_err, latency_err]
@@ -137,6 +138,7 @@ class Simulation:
             print("│")
             print("├──── TIME")
             print("│     ├── list: {}".format(times))
+            print("│     ├── norm: {}".format(normalized_times))
             print("│     ├── mean: {}".format(time_mean))
             print("│     └── err : {}".format(time_err))
             print("│")
@@ -147,6 +149,7 @@ class Simulation:
             print()
 
             times = []
+            normalized_times = []
             latencies = []
             time_mean = 0
             latency_mean = 0
@@ -156,7 +159,9 @@ class Simulation:
             print("├──── MEASURES ({})".format(meanings))
             for index, sim_dot_out_file in enumerate(benchmark.sim_dot_out_3dram_files):
                 filename, time_in_ns, latency_in_ns = (sim_dot_out_file)
+                time_in_ns_of_2dram = int(benchmark.sim_dot_out_2dram_files[index][1])
                 times.append(int(time_in_ns))
+                normalized_times.append(int(time_in_ns) / time_in_ns_of_2dram)
                 time_mean += int(time_in_ns)
                 latencies.append(float(latency_in_ns))
                 latency_mean += float(latency_in_ns)
@@ -165,7 +170,7 @@ class Simulation:
                 else:
                     print("│     └── time: {} | latency: {} | file: {}".format(time_in_ns, latency_in_ns, filename.split("simulations/",1)[1].replace(" ","")))
             time_mean = time_mean / meanings
-            time_err = calc_ci_using_bootstrap(times)
+            time_err = calc_ci_using_bootstrap(normalized_times)
             latency_mean = round((latency_mean / meanings), 2)
             latency_err = round(calc_ci_using_bootstrap(latencies), 2)
             line = [benchmark.name, "3D_RAM", time_mean, latency_mean, time_err, latency_err]
@@ -173,6 +178,7 @@ class Simulation:
             print("│")
             print("├──── TIME")
             print("│     ├── list: {}".format(times))
+            print("│     ├── norm: {}".format(normalized_times))
             print("│     ├── mean: {}".format(time_mean))
             print("│     └── err : {}".format(time_err))
             print("│")
@@ -183,6 +189,7 @@ class Simulation:
             print()
 
             times = []
+            normalized_times = []
             latencies = []
             time_mean = 0
             latency_mean = 0
@@ -192,7 +199,9 @@ class Simulation:
             print("├──── MEASURES ({})".format(meanings))
             for index, sim_dot_out_file in enumerate(benchmark.sim_dot_out_pcm_files):
                 filename, time_in_ns, latency_in_ns = (sim_dot_out_file)
+                time_in_ns_of_2dram = int(benchmark.sim_dot_out_2dram_files[index][1])
                 times.append(int(time_in_ns))
+                normalized_times.append(int(time_in_ns) / time_in_ns_of_2dram)
                 time_mean += int(time_in_ns)
                 latencies.append(float(latency_in_ns))
                 latency_mean += float(latency_in_ns)
@@ -201,7 +210,7 @@ class Simulation:
                 else:
                     print("│     └── time: {} | latency: {} | file: {}".format(time_in_ns, latency_in_ns, filename.split("simulations/",1)[1].replace(" ","")))
             time_mean = time_mean / meanings
-            time_err = calc_ci_using_bootstrap(times)
+            time_err = calc_ci_using_bootstrap(normalized_times)
             latency_mean = round((latency_mean / meanings), 2)
             latency_err = round(calc_ci_using_bootstrap(latencies), 2)
             line = [benchmark.name, "PCM", time_mean, latency_mean, time_err, latency_err]
@@ -209,6 +218,7 @@ class Simulation:
             print("│")
             print("├──── TIME")
             print("│     ├── list: {}".format(times))
+            print("│     ├── norm: {}".format(normalized_times))
             print("│     ├── mean: {}".format(time_mean))
             print("│     └── err : {}".format(time_err))
             print("│")
@@ -219,6 +229,7 @@ class Simulation:
             print()
 
             times = []
+            normalized_times = []
             latencies = []
             time_mean = 0
             latency_mean = 0
@@ -228,7 +239,9 @@ class Simulation:
             print("├──── MEASURES ({})".format(meanings))
             for index, sim_dot_out_file in enumerate(benchmark.sim_dot_out_rram_files):
                 filename, time_in_ns, latency_in_ns = (sim_dot_out_file)
+                time_in_ns_of_2dram = int(benchmark.sim_dot_out_2dram_files[index][1])
                 times.append(int(time_in_ns))
+                normalized_times.append(int(time_in_ns) / time_in_ns_of_2dram)
                 time_mean += int(time_in_ns)
                 latencies.append(float(latency_in_ns))
                 latency_mean += float(latency_in_ns)
@@ -237,7 +250,7 @@ class Simulation:
                 else:
                     print("│     └── time: {} | latency: {} | file: {}".format(time_in_ns, latency_in_ns, filename.split("simulations/",1)[1].replace(" ","")))
             time_mean = time_mean / meanings
-            time_err = calc_ci_using_bootstrap(times)
+            time_err = calc_ci_using_bootstrap(normalized_times)
             latency_mean = round((latency_mean / meanings), 2)
             latency_err = round(calc_ci_using_bootstrap(latencies), 2)
             line = [benchmark.name, "RRAM", time_mean, latency_mean, time_err, latency_err]
@@ -245,6 +258,7 @@ class Simulation:
             print("│")
             print("├──── TIME")
             print("│     ├── list: {}".format(times))
+            print("│     ├── norm: {}".format(normalized_times))
             print("│     ├── mean: {}".format(time_mean))
             print("│     └── err : {}".format(time_err))
             print("│")
@@ -255,6 +269,7 @@ class Simulation:
             print()
 
             times = []
+            normalized_times = []
             latencies = []
             time_mean = 0
             latency_mean = 0
@@ -264,7 +279,9 @@ class Simulation:
             print("├──── MEASURES ({})".format(meanings))
             for index, sim_dot_out_file in enumerate(benchmark.sim_dot_out_sttram_files):
                 filename, time_in_ns, latency_in_ns = (sim_dot_out_file)
+                time_in_ns_of_2dram = int(benchmark.sim_dot_out_2dram_files[index][1])
                 times.append(int(time_in_ns))
+                normalized_times.append(int(time_in_ns) / time_in_ns_of_2dram)
                 time_mean += int(time_in_ns)
                 latencies.append(float(latency_in_ns))
                 latency_mean += float(latency_in_ns)
@@ -273,7 +290,7 @@ class Simulation:
                 else:
                     print("│     └── time: {} | latency: {} | file: {}".format(time_in_ns, latency_in_ns, filename.split("simulations/",1)[1].replace(" ","")))
             time_mean = time_mean / meanings
-            time_err = calc_ci_using_bootstrap(times)
+            time_err = calc_ci_using_bootstrap(normalized_times)
             latency_mean = round((latency_mean / meanings), 2)
             latency_err = round(calc_ci_using_bootstrap(latencies), 2)
             line = [benchmark.name, "STTRAM", time_mean, latency_mean, time_err, latency_err]
@@ -281,6 +298,7 @@ class Simulation:
             print("│")
             print("├──── TIME")
             print("│     ├── list: {}".format(times))
+            print("│     ├── norm: {}".format(normalized_times))
             print("│     ├── mean: {}".format(time_mean))
             print("│     └── err : {}".format(time_err))
             print("│")
@@ -289,7 +307,7 @@ class Simulation:
             print("      ├── mean: {}".format(latency_mean))
             print("      └── err : {}".format(latency_err))
             print()
-    
+
     def normalize_time_values(self):
         for index, line in enumerate(self.dataframe):
             if self.dataframe[index][1] == "2D_RAM":
@@ -300,19 +318,10 @@ class Simulation:
                 self.dataframe[index+2][2] = self.dataframe[index+2][2] / normalize_value
                 self.dataframe[index+3][2] = self.dataframe[index+3][2] / normalize_value
                 self.dataframe[index+4][2] = self.dataframe[index+4][2] / normalize_value
-                
-                # normaliza os intervalos de confianca
-                normalize_err = self.dataframe[index][4]
-                self.dataframe[index][4] = self.dataframe[index][4] / normalize_err
-                self.dataframe[index+1][4] = self.dataframe[index+1][4] / normalize_err
-                self.dataframe[index+2][4] = self.dataframe[index+2][4] / normalize_err
-                self.dataframe[index+3][4] = self.dataframe[index+3][4] / normalize_err
-                self.dataframe[index+4][4] = self.dataframe[index+4][4] / normalize_err
-        # print(self.dataframe)
 
 def generate_latency_graph(simulation):
     df = pd.DataFrame(simulation.dataframe, columns=["benchmark","memory", "time", "latency", "time-error", "latency-error"])
-    
+
     memory_2dram_means = df.loc[df['memory'] == '2D_RAM']["latency"].tolist()
     memory_2dram_error = df.loc[df['memory'] == '2D_RAM']["latency-error"].tolist()
     memory_3dram_means = df.loc[df['memory'] == '3D_RAM']["latency"].tolist()
@@ -323,10 +332,10 @@ def generate_latency_graph(simulation):
     memory_rram_error = df.loc[df['memory'] == 'RRAM']["latency-error"].tolist()
     memory_sttram_means = df.loc[df['memory'] == 'STTRAM']["latency"].tolist()
     memory_sttram_error = df.loc[df['memory'] == 'STTRAM']["latency-error"].tolist()
-    
+
     # pontos do eixo x
     x = np.arange(len(benchmark_names))
-    
+
     # seta a largura das barras
     width = 0.15
 
@@ -369,7 +378,7 @@ def generate_latency_graph(simulation):
 
 def generate_time_graph(simulation):
     df = pd.DataFrame(simulation.dataframe, columns=["benchmark", "memory", "time", "latency", "time-error", "latency-error"])
-    
+
     memory_2dram_means = df.loc[df['memory'] == '2D_RAM']["time"].tolist()
     memory_2dram_error = df.loc[df['memory'] == '2D_RAM']["time-error"].tolist()
     memory_3dram_means = df.loc[df['memory'] == '3D_RAM']["time"].tolist()
@@ -380,10 +389,10 @@ def generate_time_graph(simulation):
     memory_rram_error = df.loc[df['memory'] == 'RRAM']["time-error"].tolist()
     memory_sttram_means = df.loc[df['memory'] == 'STTRAM']["time"].tolist()
     memory_sttram_error = df.loc[df['memory'] == 'STTRAM']["time-error"].tolist()
-    
+
     # pontos do eixo x
     x = np.arange(len(benchmark_names))
-    
+
     # seta a largura das barras
     width = 0.15
 
@@ -398,7 +407,7 @@ def generate_time_graph(simulation):
     # insere as legendas formatados
     ax.set_title("Tempo médio de execução", weight='bold')
     ax.set_ylabel('TEMPO (ns) / 2DRAM', weight='bold')
-    ax.set(ylim=(0, 10))
+    ax.set(ylim=(0, 6))
     ax.set_xticks(x)
     ax.set_xticklabels(benchmark_names)
     ax.legend(title='', loc='best')
@@ -424,7 +433,7 @@ def generate_time_graph(simulation):
     plt.show()
 
 def calc_ci_using_bootstrap(samples):
-    rearrangements = [[0 for x in range(len(samples))] for y in range(rearrangements_size)] 
+    rearrangements = [[0 for x in range(len(samples))] for y in range(rearrangements_size)]
     rearrangements_means = [0 for x in range(rearrangements_size)]
 
     for i in range(rearrangements_size):
@@ -434,7 +443,7 @@ def calc_ci_using_bootstrap(samples):
             mean += rearrangements[i][k]
         mean = mean / len(samples)
         rearrangements_means[i] = mean
-    
+
     rearrangements_means = sorted(rearrangements_means)
     value_min = value_max = -1
     percentage_min = (100 - confidence_percentage) / 2
@@ -455,12 +464,12 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("[NVMSIM][ERROR] Missing arg to folder to simulations")
         exit()
-    
-    # carrega as simulacoes (simulation-1, simulation-2, ..., simulation-n) 
+
+    # carrega as simulacoes (simulation-1, simulation-2, ..., simulation-n)
     simulations_path = sys.argv[1]
     simulations_paths = glob.glob('{}/*'.format(simulations_path))
     for simulation_path in simulations_paths:
-        name = simulation_path.rsplit('/', 1)[-1] 
+        name = simulation_path.rsplit('/', 1)[-1]
         simulation = Simulation(name)
         simulation.path = simulation_path
         simulation.get_benchmarks_paths()
@@ -480,11 +489,11 @@ if __name__ == '__main__':
                     benchmark.sim_dot_out_rram_files += benchmark_aux.sim_dot_out_rram_files
                     benchmark.sim_dot_out_sttram_files += benchmark_aux.sim_dot_out_sttram_files
         united_simulation.benchmarks.append(benchmark)
-    
+
     # cria o dataframe completo - medias das 10 simulacoes mais erros calculados via bootstrap
     united_simulation.make_dataframe()
 
-    # normaliza os valores do time em relacao aos da 2DRAM 
+    # normaliza os valores do time em relacao aos da 2DRAM
     united_simulation.normalize_time_values()
 
     # gera os gráficos

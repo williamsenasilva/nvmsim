@@ -88,8 +88,7 @@ Gráficos serão gerados automaticamente com os resultados
 mkvirtualenv nvmsim
 pip install requirements.txt
 python tools/generate-graph.py $(pwd)/doc/logs/simulations
-``
+```
 
 ## Documentação
-
 A documentação está disponível na [Wiki](https://gitlab.com/williamsenasilva/nvmsim/wikis/home)

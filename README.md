@@ -10,16 +10,16 @@ Código fonte mais documentação da aplicação
 git clone git@gitlab.com:williamsenasilva/nvmsim.git
 ```
 
-- #### Download do Sniper 
-Obtenha a versão mais recente do Sniper (7.3) no <a href="https://snipersim.org/w/Download" target="_blank">site oficial</a>  
+- #### Download do Sniper
+Obtenha a versão mais recente do Sniper (7.3) no <a href="https://snipersim.org/w/Download" target="_blank">site oficial</a>
 Será disponibilizado um link para clonar, o repositório. Realize um git clone neste link.
 Exemplo
 ```bash
 git clone http://snipersim.org/download/b98cd4a4c864ce6d/git/sniper.git
 ```
 
-- #### Download do PinPlay 
-Obtenha a versão mais recente do PinPlay (3.7) no <a href="https://software.intel.com/content/www/us/en/develop/articles/program-recordreplay-toolkit.html" target="_blank">site oficial</a>  
+- #### Download do PinPlay
+Obtenha a versão mais recente do PinPlay (3.7) no <a href="https://software.intel.com/content/www/us/en/develop/articles/program-recordreplay-toolkit.html" target="_blank">site oficial</a>
 Descompacte o arquivo tar.gz baixado
 
 Exemplo
@@ -27,8 +27,8 @@ Exemplo
 tar -xf pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux.tar.gz
 ```
 
-- #### Download do NVMain 
-Obtenha a versão mais recente do NVMain por download no <a href="https://bitbucket.org/mrp5060/nvmain" target="_blank">bitbucket</a> 
+- #### Download do NVMain
+Obtenha a versão mais recente do NVMain por download no <a href="https://bitbucket.org/mrp5060/nvmain" target="_blank">bitbucket</a>
 Ou via hg clone do projeto.
 Exemplo
 ```bash
@@ -36,7 +36,7 @@ git clone git@github.com:SEAL-UCSB/NVmain.git
 ```
 
 - #### Download do SPEC CPU 2006
-Monte a imagem .iso no host. Preencha SPECCPU_PATH do arquivo .env com o caminho da imagem montada no arquivo. 
+Monte a imagem .iso no host. Preencha SPECCPU_PATH do arquivo .env com o caminho da imagem montada no arquivo.
 
 - #### Criar e configurar arquivo .env
 Crie um arquivo .env dentro da raíz do projeto com o comando abaixo
@@ -63,7 +63,7 @@ sh nvmsim.sh build-images
 ```
 
 - #### Construir ambientes
-obs: Arquivos existentes serão removidos e um novo ambiente será recriado do zero 
+obs: Arquivos existentes serão removidos e um novo ambiente será recriado do zero
 ```bash
 sh nvmsim.sh build-envs
 ```
@@ -82,10 +82,14 @@ sh nvmsim.sh run
 sh nvmsim.sh stop
 ```
 
+## Resultados
+Gráficos serão gerados automaticamente com os resultados
+```bash
+mkvirtualenv nvmsim
+pip install requirements.txt
+python tools/generate-graph.py $(pwd)/doc/logs/simulations
+``
+
 ## Documentação
 
 A documentação está disponível na [Wiki](https://gitlab.com/williamsenasilva/nvmsim/wikis/home)
-
-## GDB
-ddd -> gui gdb
-eclipse 

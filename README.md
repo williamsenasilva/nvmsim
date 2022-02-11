@@ -1,10 +1,10 @@
-# NVMSIM
+# NVMSim
 
 Código fonte mais documentação da aplicação
 
 ## Configuração inicial
 
-- #### Download do projeto NVMSIM
+- #### Download do projeto NVMSim
 
 ```bash
 git clone git@gitlab.com:williamsenasilva/nvmsim.git
@@ -92,3 +92,22 @@ python tools/generate-graph.py $(pwd)/doc/logs/simulations
 
 ## Documentação
 A documentação está disponível na [Wiki](https://gitlab.com/williamsenasilva/nvmsim/wikis/home)
+
+## TODO
+- [ ] NVMSim
+  - [x] Sniper
+    - [x] Imagem Docker
+    - [x] Compilação dos fontes
+  - [x] NVMain
+    - [x] Imagem Docker
+    - [x] Compilação dos fontes
+  - [x] SPEC CPU 2006
+    - [x] Imagem Docker
+    - [x] Compilação dos fontes
+  - [ ] Simulação
+    - [x] Integração Sniper x NVMain
+    - [ ] Resultados
+      - [x] Leitura automática dos resultados
+      - [x] Geração dos gráficos
+      - [ ] Automatizar ambiente dos resultados
+        - [ ] Imagem Docker

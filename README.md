@@ -91,7 +91,7 @@ python tools/generate-graph.py $(pwd)/doc/logs/simulations
 ```
 
 ## Documentação
-A documentação está disponível na [Wiki](https://gitlab.com/williamsenasilva/nvmsim/wikis/home)
+A documentação está disponível na [Wiki](../../wikis/home)
 
 ## TODO
 - [ ] NVMSim

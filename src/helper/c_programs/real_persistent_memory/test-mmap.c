@@ -18,6 +18,7 @@ SYNOPSIS
 int main(int argc, char *argv[]) {
    int flags, protect, file_descriptor, offset;
    long length;
+   unsigned long sum = 0;
    clock_t time_ini, time_end;
    double time_spent;
      
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
       printf("[ERROR] args not enough\n");
       return 1;
    }
-
+   
    length = atoi(argv[1]) * ONE_MEGA;
    protect = PROT_READ | PROT_WRITE; 
    flags = MAP_PRIVATE | MAP_ANONYMOUS; 
@@ -59,14 +60,14 @@ int main(int argc, char *argv[]) {
    */
    srand(time(NULL));
    time_ini = clock();
-   for( int i = 0; i < length; i++ )
+   for( long i = 0; i < length; i++ )
    {
       int random_index = rand() % length;
-      printf("%d/%d - pos[%d] = %c\n", i+1, length, random_index, page[random_index]);
+      sum += page[random_index];
    }
    time_end = clock();
    time_spent = ((double) (time_end - time_ini)) / CLOCKS_PER_SEC;
-   printf( "[INFO ] time spent: %fs\n", time_spent );
+   printf( "[INFO ] time spent: %fs | sum: %lu\n", time_spent, sum );
 
    /* libero o espaço para uso de outros programas */
    int err = munmap( page, length * sizeof(char));
@@ -78,3 +79,4 @@ int main(int argc, char *argv[]) {
    
    return 0;
 } /* end of main */
+

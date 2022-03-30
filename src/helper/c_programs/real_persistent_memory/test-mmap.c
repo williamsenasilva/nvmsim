@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <sys/mman.h>
-#include <stdlib.h> /* atoi */
+#include <stdlib.h>
 #include <time.h>
+#include <fcntl.h>
 
 #define ONE_MEGA 1048576
 
@@ -28,13 +29,30 @@ int main(int argc, char *argv[]) {
       return 1;
    }
    
-   length = atoi(argv[1]) * ONE_MEGA;
-   protect = PROT_READ | PROT_WRITE; 
-   flags = MAP_PRIVATE | MAP_ANONYMOUS; 
-   file_descriptor = 0;
+   length = atoi( argv[1] ) * ONE_MEGA;
+   protect = PROT_READ | PROT_WRITE;
    offset = 0;
    
-   /* 
+   if ( argc == 2 ) {
+      flags = MAP_PRIVATE | MAP_ANONYMOUS;
+      file_descriptor = 0;
+   }
+   else {
+      char *filename = argv[2];
+      FILE *file = fopen( filename, "w" );
+      if( file == NULL ) {
+         printf( "[ERROR] error on create %s\n", filename );
+         return 1;
+      }
+      fseek( file, length - 1 , SEEK_SET );
+      fputc( EOF, file );
+      fclose( file );
+
+      flags = MAP_SHARED | MAP_FILE;
+      file_descriptor = open(filename, O_RDWR, 0);
+   }
+
+   /*
    * reserva um espaço/página de N bytes na memória
    * inicialmente neste espaço haverá lixo
    * após a primeira leitura o processador carregará os dados na memória dentro deste espaço
@@ -53,7 +71,7 @@ int main(int argc, char *argv[]) {
    */
    for( int i = 0; i < length; i++ ) 
       page[i] = i % 127 > 32 ? i % 127 : 33;
-   
+
    /*
    * realizo leituras aleatórias para driblar o cache prefetching     
    * forço o processador a ficar buscando os dados que não estão na cache porque não couberam 
@@ -62,12 +80,13 @@ int main(int argc, char *argv[]) {
    time_ini = clock();
    for( long i = 0; i < length; i++ )
    {
-      int random_index = rand() % length;
+      long random_index = rand() % length;
       sum += page[random_index];
+      //printf( "[%lu/%lu] = %c\n", random_index, length, page[random_index] );
    }
    time_end = clock();
    time_spent = ((double) (time_end - time_ini)) / CLOCKS_PER_SEC;
-   printf( "[INFO ] time spent: %fs | sum: %lu\n", time_spent, sum );
+   printf( "[INFO ] size memory: %luM | time spent: %.2fs | sum: %lu\n", length / ONE_MEGA, time_spent, sum );
 
    /* libero o espaço para uso de outros programas */
    int err = munmap( page, length * sizeof(char));

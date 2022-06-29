@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
 
 void clear_page(char *page, long memory_size)
 {
-   for( int i = 0; i < memory_size; i++ )
+   for( long i = 0; i < memory_size; i++ )
       page[i] = 0;
 }
 
@@ -117,7 +117,7 @@ void fill_page(char *page, long memory_size, double *timespent)
    struct timespec tick, tock;
    
    clock_gettime(CLOCK_REALTIME, &tick);
-   for( int i = 0; i < memory_size; i++ )
+   for( long i = 0; i < memory_size; i++ )
       page[i] = i % 127 > 32 ? i % 127 : 33;
    clock_gettime(CLOCK_REALTIME, &tock);
    *timespent = (double)(NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec) / NANOS;

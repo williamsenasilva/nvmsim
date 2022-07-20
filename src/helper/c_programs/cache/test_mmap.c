@@ -118,7 +118,10 @@ void fill_page(char *page, long memory_size, double *timespent)
    
    clock_gettime(CLOCK_REALTIME, &tick);
    for( long i = 0; i < memory_size; i++ )
+   {
       page[i] = i % 127 > 32 ? i % 127 : 33;
+      msync(&page[i], sizeof(long), MS_SYNC);
+   }
    clock_gettime(CLOCK_REALTIME, &tock);
    *timespent = (double)(NANOS * (tock.tv_sec - tick.tv_sec) + tock.tv_nsec - tick.tv_nsec) / NANOS;
 }

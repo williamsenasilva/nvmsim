@@ -15,7 +15,7 @@ Obtenha a versão mais recente do Sniper (7.3) no <a href="https://snipersim.org
 Será disponibilizado um link para clonar, o repositório. Realize um git clone neste link.
 Exemplo
 ```bash
-git clone http://snipersim.org/download/b98cd4a4c864ce6d/git/sniper.git
+git clone http://snipersim.org/download/a0123456789b0123456789/git/sniper.git
 ```
 
 - #### Download do PinPlay
@@ -35,79 +35,43 @@ Exemplo
 git clone git@github.com:SEAL-UCSB/NVmain.git
 ```
 
-- #### Download do SPEC CPU 2006
-Monte a imagem .iso no host. Preencha SPECCPU_PATH do arquivo .env com o caminho da imagem montada no arquivo.
-
 - #### Criar e configurar arquivo .env
-Crie um arquivo .env dentro da raíz do projeto com o comando abaixo
+Copie o arquivo .env-example para um arquivo .env dentro da raíz do projeto
 ```bash
-touch .env
+cp .env-example .env
 ```
-Edite as variáveis de ambiente dentro deste arquivo com as pastas do Sniper e PinPlay que foram baixadas
+Edite as variáveis de ambiente dentro deste arquivo de acordo com o seu ambiente
 
 Exemplo:
 ```conf
-SNIPER_PATH=/home/william/Downloads/sniper-7.2
+SNIPER_PATH=/home/william/Downloads/sniper-7.3
 PINPLAY_PATH=/home/william/Downloads/pinplay-drdebug-3.7-pin-3.7-97619-g0d0c92f4f-gcc-linux
 NVMAIN_PATH=/home/william/Downloads/NVmain
-SPECCPU_PATH=/run/media/william/SPEC_CPU2006v1.2
-SNIPER_TARGET_ARCH=intel64
+SPECCPU_PATH=/home/william/Downloads/SPEC_CPU2006v1.21
 ENABLE_SNIPER=1
 ENABLE_NVMAIN=1
-ENABLE_SPECCPU=1
+ENABLE_SPECCPU=0
+SNIPER_TARGET_ARCH=intel64
 ```
 
 - #### Construir imagens Docker
 ```bash
-sh nvmsim.sh build-images
-```
-
-- #### Construir ambientes
-obs: Arquivos existentes serão removidos e um novo ambiente será recriado do zero
-```bash
-sh nvmsim.sh build-envs
+./run-nvmsim.sh build-images
 ```
 
 ## Testes
 
-- #### Inicializar containers e rodar trace
+- #### Inicializar NVMSim
 
 ```bash
-sh nvmsim.sh run
+./run-nvmsim.sh start
 ```
 
-- #### Parar containers
+- #### Parar NVMSim
 
 ```bash
-sh nvmsim.sh stop
-```
-
-## Resultados
-Gráficos serão gerados automaticamente com os resultados
-```bash
-mkvirtualenv nvmsim
-pip install requirements.txt
-python tools/generate-graph.py $(pwd)/doc/logs/simulations
+./run-nvmsim.sh stop
 ```
 
 ## Documentação
 A documentação está disponível na [Wiki](../../wikis/home)
-
-## TODO
-- [ ] NVMSim
-  - [x] Sniper
-    - [x] Imagem Docker
-    - [x] Compilação dos fontes
-  - [x] NVMain
-    - [x] Imagem Docker
-    - [x] Compilação dos fontes
-  - [x] SPEC CPU 2006
-    - [x] Imagem Docker
-    - [x] Compilação dos fontes
-  - [ ] Simulação
-    - [x] Integração Sniper x NVMain
-    - [ ] Resultados
-      - [x] Leitura automática dos resultados
-      - [x] Geração dos gráficos
-      - [ ] Automatizar ambiente dos resultados
-        - [ ] Imagem Docker

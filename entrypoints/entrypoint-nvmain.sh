@@ -35,13 +35,13 @@ run() {
     if [ $COUNT == 0 ] || [ $INSTANCE_INDEX == 1 ]; then
       log_wait "Building artifacts"
 
-      command="scons --build-type=fast"
+      command="scons -j $(nproc) --build-type=fast"
       run_command "$command"
       
-      command="scons --build-type=prof"
+      command="scons -j $(nproc) --build-type=prof"
       run_command "$command"
       
-      command="scons --build-type=debug"
+      command="scons -j $(nproc) --build-type=debug"
       run_command "$command"
       
       touch /mnt/nvmsim/nvmain-ready
@@ -54,10 +54,16 @@ run() {
     done
 
     IFS=', ' read -r -a nvmain_config_files <<< "${NVMAIN_CONFIG_FILES}"
-    array_index=$(expr $INSTANCE_INDEX - 1)
-    nvmain_config_file=${nvmain_config_files[$array_index]}
-
-    command="./nvmain.debug Config/${nvmain_config_file} /mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX} 0 TraceReader=SniperTrace"
+    if [ $COUNT == 0 ]; then
+      array_index=0
+      nvmain_config_file=${nvmain_config_files[$array_index]}
+      command="./nvmain.debug Config/${nvmain_config_file} /mnt/nvmsim/tracefile-instance-1 0 TraceReader=SniperTrace"
+    else
+      array_index=$(expr $INSTANCE_INDEX - 1)
+      nvmain_config_file=${nvmain_config_files[$array_index]}
+      command="./nvmain.debug Config/${nvmain_config_file} /mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX} 0 TraceReader=SniperTrace"
+    fi
+    
     run_command "$command"
     
     log_info "NVMain Docker entrypoint finished." 

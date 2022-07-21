@@ -32,17 +32,28 @@ END
   #docker-compose build speccpu
 }
 
-copy_third_source_files() {
-  if [ $SNIPER_PATH ] && [ $NVMAIN_PATH ]; then
-    log_wait "Copying artifacts"
-    rm -rf ${path}/shared/sniper/
-    rm -rf ${path}/shared/pinplay/
-    rm -rf ${path}/shared/nvmain/
-    mkdir -p ${path}/shared/nvmsim/src/
-    cp -r ${SNIPER_PATH} ${path}/shared/sniper
-    cp -r ${PINPLAY_PATH} ${path}/shared/pinplay
-    cp -r ${NVMAIN_PATH} ${path}/shared/nvmain
-    log_done "Copying artifacts"
+copy_simulators_files() {
+  if [ $SNIPER_PATH ] && [ $PINPLAY_PATH ] && [ $NVMAIN_PATH ]; then
+    if ! test -f "${path}/shared/sniper/run-sniper"; then
+      log_wait "Copying artifacts"
+      command="cp -r ${SNIPER_PATH} ${path}/shared/sniper"
+      run_command "$command"
+      log_done "Copying artifacts ($command)"
+    fi
+
+    if ! test -f "${path}/shared/pinplay/pin"; then
+      log_wait "Copying artifacts"
+      command="cp -r ${PINPLAY_PATH} ${path}/shared/pinplay"
+      run_command "$command"
+      log_done "Copying artifacts ($command)"
+    fi
+
+    if ! test -f "${path}/shared/nvmain/nvmain.debug"; then
+      log_wait "Copying artifacts"
+      command="cp -r ${NVMAIN_PATH} ${path}/shared/nvmain"
+      run_command "$command"
+      log_done "Copying artifacts ($command)"
+    fi
   else
     log_errr "You must define SNIPER_PATH, PINPLAY_PATH, and NVMAIN_PATH in your .env file."
     exit 0
@@ -101,7 +112,6 @@ copy_source_files() {
     cp ${path}/src/nvmain/PCM_MLC_example.config ${path}/shared/nvmain/Config/
     cp ${path}/src/nvmain/RRAM_ISSCC_2012_4GB.config ${path}/shared/nvmain/Config/
     cp ${path}/src/nvmain/STTRAM_Everspin_4GB.config ${path}/shared/nvmain/Config/
-    cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim/
 
     log_done "Copying source files"
   fi
@@ -157,21 +167,12 @@ show_logs() {
 }
 
 start_services() {
-  # copy_third_source_files
+  rm -rf ${path}/shared/nvmsim/*
+
+  copy_simulators_files
   remove_gem5_dependency
   copy_source_files
   
-  rm -rf ${path}/shared/nvmsim/logs/
-  rm ${path}/shared/nvmsim/tracefile*.*
-  
-  if test -f "${path}/shared/nvmsim/nvmain-ready"; then
-    rm -f ${path}/shared/nvmsim/nvmain-ready
-  fi
-
-  if test -f "${path}/shared/nvmsim/sniper-ready"; then
-    rm -f ${path}/shared/nvmsim/sniper-ready
-  fi
-
   IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"
   instances=${#config_files[@]}
   command="docker-compose up -d $1 $2 $3 --scale sniper=$instances --scale nvmain=$instances"

@@ -51,13 +51,11 @@ run_sniper() {
   program_name="test_mmap"
 
   if [ $COUNT == 0 ] || [ $INSTANCE_INDEX == 1 ]; then
-    make -j $(nproc)
-    chmod -R 777 /opt/sniper
     command="make -j $(nproc)"
     run_command "$command"
     touch /mnt/nvmsim/sniper-ready
     
-    command="gcc /mnt/nvmsim/src/cache/${program_name}.c -g -O0 -o /opt/sniper/${program_name}"
+    command="gcc /mnt/nvmsim/src/${program_name}.c -g -O0 -o /opt/sniper/${program_name}"
     run_command "$command"
   fi
 
@@ -193,14 +191,12 @@ run_sniper_with_speccpu_commands() {
 
 run() {
   log_info "Sniper Docker entrypoint started"
-  chmod -R 777 /opt/sniper
   
   check_sniper_requirements
   set_timezone
   run_sniper
   # run_sniper_with_speccpu_commands
   
-  chmod -R 777 /opt/sniper
   log_info "Sniper Docker entrypoint finished"
   tail -f /dev/null
 }

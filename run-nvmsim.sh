@@ -1,267 +1,223 @@
 #!/bin/bash
 
-COMMAND=$1
-SUBCOMMANDS=${@:2}
+SCRIPT_ARGS=("$@")
 
-function build_images
-{
-    docker-compose down
-    docker-compose build ${docker_compose_optional_arg}
+path=$(pwd)
+shared_path=${path}/shared
+vendor_path=${path}/artifacts
+scripts_path=${path}/scripts
+env_file_path=$path'/.env'
 
-    message_action="[CHECK]"
-    if [ ! -d "${SPECCPU_PATH}" ]; then
-        message="Path \"${SPECCPU_PATH}\" not found found. Check if dvd volume was mounted."
-        echo -e "${message_erro}${message_action} ${message}"
-        exit 0
-    fi
+source ${scripts_path}/util.sh
+source ${scripts_path}/help.sh
 
-    message_action="[COPY ]"
-    message="Copying SPECCPU midia to temp path to be used in Docker context... "
-    echo -n "${message_info}${message_action} ${message}"
-    if [ -d "${path}/temp/speccpu-midia" ]; then
-        rm -rf ${path}/temp/speccpu-midia
-    fi
-    mkdir -p ${path}/temp
-    cp -r "${SPECCPU_PATH}" ${path}/temp/speccpu-midia
-    echo "ok"
+build_images() {
+  command="docker-compose build ${SCRIPT_ARGS[1]} ${SCRIPT_ARGS[2]}"
+  run_command "$command"
 
-    docker-compose build speccpu
+: <<'END'
+  if [ ! -d "${SPECCPU_PATH}" ]; then
+    log_errr "Path \"${SPECCPU_PATH}\" not found found. Check if dvd volume was mounted."
+    exit 0
+  fi
+
+  log_info "Copying SPECCPU midia to temp path to be used in Docker context... "
+  if [ -d "${path}/temp/speccpu-midia" ]; then
+    rm -rf ${path}/temp/speccpu-midia
+  fi
+  mkdir -p ${path}/temp
+  cp -r "${SPECCPU_PATH}" ${path}/temp/speccpu-midia
+END
+
+  #docker-compose build speccpu
 }
 
-function copy_third_source_files
-{
-    message_action="[COPY ]"
-    if [ $SNIPER_PATH ] && [ $PINPLAY_PATH ] && [ $NVMAIN_PATH ]; then
-        message="Copying artifacts... "
-        echo -n "${message_info}${message_action} ${message}"
-        rm -rf ${path}/shared/sniper/
-        rm -rf ${path}/shared/pinplay/
-        rm -rf ${path}/shared/nvmain/
-        cp -r ${SNIPER_PATH} ${path}/shared/sniper
-        cp -r ${PINPLAY_PATH} ${path}/shared/pinplay
-        cp -r ${NVMAIN_PATH} ${path}/shared/nvmain
-        echo "ok"
-    else
-        message="${message} You must define SNIPER_PATH, PINPLAY_PATH, and NVMAIN_PATH in your .env file."
-        echo -e "${message_erro}${message_action} ${message}"
-        exit 0
-    fi
+copy_third_source_files() {
+  if [ $SNIPER_PATH ] && [ $NVMAIN_PATH ]; then
+    log_wait "Copying artifacts"
+    rm -rf ${path}/shared/sniper/
+    rm -rf ${path}/shared/pinplay/
+    rm -rf ${path}/shared/nvmain/
+    mkdir -p ${path}/shared/nvmsim/src/
+    cp -r ${SNIPER_PATH} ${path}/shared/sniper
+    cp -r ${PINPLAY_PATH} ${path}/shared/pinplay
+    cp -r ${NVMAIN_PATH} ${path}/shared/nvmain
+    log_done "Copying artifacts"
+  else
+    log_errr "You must define SNIPER_PATH, PINPLAY_PATH, and NVMAIN_PATH in your .env file."
+    exit 0
+  fi
 }
 
-function copy_source_files
-{
-    if [ $ENABLE_SNIPER == 1 ] && [ $ENABLE_NVMAIN == 1 ]; then
-        message_action="[COPY ]"
-        message="Copying source files... "
-        echo -n "${message_info}${message_action} ${message}"
-        # Sniper files
-        cp ${path}/src/sniper/core.cc ${path}/shared/sniper/common/core/
-        cp ${path}/src/sniper/cache_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
-        cp ${path}/src/sniper/dram_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/
-        cp ${path}/src/sniper/dram_cntlr.h ${path}/shared/sniper/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/
-        cp ${path}/src/sniper/memory_manager.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
-        cp ${path}/src/sniper/dram_cache.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
-        cp ${path}/src/sniper/dram_perf_model.cc ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model.h ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_normal.cc ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_normal.h ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_constant.cc ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_constant.h ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_readwrite.cc ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_readwrite.h ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_nvm.cc ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_perf_model_nvm.h ${path}/shared/sniper/common/performance_model/
-        cp ${path}/src/sniper/dram_cntlr_interface.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
-        cp ${path}/src/sniper/nvmsim-ram.cfg ${path}/shared/sniper/config/
-        cp ${path}/src/sniper/nvmsim-nvm.cfg ${path}/shared/sniper/config/
-        # c program
-        # gcc -O0 ${path}/src/helper/c_programs/single-line-cache.c -o ${path}/shared/sniper/nvmsim
-        # gcc -O0 ${path}/src/helper/c_programs/multiple-line-cache.c -o ${path}/shared/sniper/nvmsim
-        # NVMain files
-        mkdir -p ${path}/shared/nvmain/traceReader/SniperTrace
-        cp ${path}/src/nvmain/GenericTraceReader.h ${path}/shared/nvmain/traceReader/
-        cp ${path}/src/nvmain/TraceReaderFactory.cpp ${path}/shared/nvmain/traceReader/
-        cp ${path}/src/nvmain/SniperTraceReader.cpp ${path}/shared/nvmain/traceReader/SniperTrace/
-        cp ${path}/src/nvmain/SniperTraceReader.h ${path}/shared/nvmain/traceReader/SniperTrace/
-        cp ${path}/src/nvmain/FCFS.h ${path}/shared/nvmain/MemControl/FCFS/
-        cp ${path}/src/nvmain/FCFS.cpp ${path}/shared/nvmain/MemControl/FCFS/
-        cp ${path}/src/nvmain/FRFCFS.h ${path}/shared/nvmain/MemControl/FRFCFS/
-        cp ${path}/src/nvmain/FRFCFS.cpp ${path}/shared/nvmain/MemControl/FRFCFS/
-        cp ${path}/src/nvmain/FRFCFS-WQF.h ${path}/shared/nvmain/MemControl/FRFCFS-WQF/
-        cp ${path}/src/nvmain/FRFCFS-WQF.cpp ${path}/shared/nvmain/MemControl/FRFCFS-WQF/
-        cp ${path}/src/nvmain/nvmain.h ${path}/shared/nvmain/NVM/
-        cp ${path}/src/nvmain/nvmain.cpp ${path}/shared/nvmain/NVM/
-        cp ${path}/src/nvmain/MemoryController.h ${path}/shared/nvmain/src/
-        cp ${path}/src/nvmain/MemoryController.cpp ${path}/shared/nvmain/src/
-        cp ${path}/src/nvmain/traceMain.cpp ${path}/shared/nvmain/traceSim/
-        cp ${path}/src/nvmain/CoinMigrator.cpp ${path}/shared/nvmain/Utils/CoinMigrator/
-        cp ${path}/src/nvmain/SConscript ${path}/shared/nvmain/
-        cp ${path}/src/nvmain/2D_DRAM_example.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/3D_DRAM_example.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/PCM_MLC_example.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/RRAM_ISSCC_2012_4GB.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/STTRAM_Everspin_4GB.config ${path}/shared/nvmain/Config/
-        cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim/
-
-        echo "ok"
-    fi
-}
-
-function get_environment_values
-{
-    sed -i 's/\r$//' ${path}/.env
-    source ${path}/.env
-    COMMAND=${COMMAND:-run}
-}
-
-function get_scripts
-{
-    source ${scripts_path}/help.sh
-}
-
-function remove_gem5_dependency
-{
-    sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' ${path}/shared/nvmain/SConscript
-}
-
-function restart_services
-{
-    if [ ${SUBCOMMANDS} ]; then
-        if [ ${SUBCOMMANDS[0]} == all ]; then
-            command="docker-compose restart -t 1"
-        else 
-            command="docker-compose restart -t 1 ${SUBCOMMANDS}"
-        fi
-    else 
-        command="docker-compose restart -t 1 sniper nvmain"
-    fi
+copy_source_files() {
+  if [ $ENABLE_SNIPER == 1 ] && [ $ENABLE_NVMAIN == 1 ]; then
+    log_wait "Copying source files"
     
-    message_action="[RUNCMD]"
-    message="${command}"
-    echo "${message_info}${message_action} ${message}"
-    eval $command
-}
-
-function set_messages
-{
-   RED='\033[0;31m'
-   GREEN='\033[0;32m'
-   YELLOW="\033[0;33m"
-   CLEAR='\033[0m'
-   BLUE='\e[94m'
-   BOLD='\e[37m'
-
-   message_info="[NVMSIM][INFO ]"
-   message_warn="[NVMSIM][${YELLOW}WARN${CLEAR} ]"
-   message_erro="[NVMSIM][${RED}ERROR${CLEAR}]"
-   message_done="[NVMSIM][${GREEN}DONE${CLEAR} ]"
-}
-
-function set_paths
-{
-   path=$(pwd)
-   shared_path=${path}/shared
-   vendor_path=${path}/artifacts
-   scripts_path=${path}/scripts
-   env_file_path=$path'/.env'
-}
-
-function show_logs
-{
-    if [ ${SUBCOMMANDS} ]; then
-        if [ ${SUBCOMMANDS[0]} == all ]; then
-            command="docker-compose logs -f"
-        else 
-            command="docker-compose logs -f ${SUBCOMMANDS}"
-        fi
-    else 
-        command="docker-compose logs -f"
-    fi
-
-    message_action="[RUNCMD]"
-    message="${command}"
-    echo "${message_info}${message_action} ${message}"
-    eval $command
-}
-
-function start_services
-{
-    remove_gem5_dependency
-    copy_source_files
+    # NVMSim files
+    cp -r ${path}/src/helper/c_programs/cache/ ${path}/shared/nvmsim/src/
     
-    rm -rf ${path}/shared/nvmsim/logs/
-    rm ${path}/shared/nvmsim/tracefile*.*
+    # Sniper files
+    cp ${path}/src/sniper/core.cc ${path}/shared/sniper/common/core/
+    cp ${path}/src/sniper/cache_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
+    cp ${path}/src/sniper/dram_cntlr.cc ${path}/shared/sniper/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/
+    cp ${path}/src/sniper/dram_cntlr.h ${path}/shared/sniper/common/core/memory_subsystem/pr_l1_pr_l2_dram_directory_msi/
+    cp ${path}/src/sniper/memory_manager.cc ${path}/shared/sniper/common/core/memory_subsystem/parametric_dram_directory_msi/
+    cp ${path}/src/sniper/dram_cache.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
+    cp ${path}/src/sniper/dram_perf_model.cc ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model.h ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_normal.cc ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_normal.h ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_constant.cc ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_constant.h ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_readwrite.cc ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_readwrite.h ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_nvm.cc ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_perf_model_nvm.h ${path}/shared/sniper/common/performance_model/
+    cp ${path}/src/sniper/dram_cntlr_interface.cc ${path}/shared/sniper/common/core/memory_subsystem/dram/
+    cp ${path}/src/sniper/nvmsim-ram.cfg ${path}/shared/sniper/config/
+    cp ${path}/src/sniper/nvmsim-nvm.cfg ${path}/shared/sniper/config/
     
-    if test -f "${path}/shared/nvmsim/nvmain-ready"; then
-        rm -f ${path}/shared/nvmsim/nvmain-ready
-    fi
+    # NVMain files
+    mkdir -p ${path}/shared/nvmain/traceReader/SniperTrace
+    cp ${path}/src/nvmain/GenericTraceReader.h ${path}/shared/nvmain/traceReader/
+    cp ${path}/src/nvmain/TraceReaderFactory.cpp ${path}/shared/nvmain/traceReader/
+    cp ${path}/src/nvmain/SniperTraceReader.cpp ${path}/shared/nvmain/traceReader/SniperTrace/
+    cp ${path}/src/nvmain/SniperTraceReader.h ${path}/shared/nvmain/traceReader/SniperTrace/
+    cp ${path}/src/nvmain/FCFS.h ${path}/shared/nvmain/MemControl/FCFS/
+    cp ${path}/src/nvmain/FCFS.cpp ${path}/shared/nvmain/MemControl/FCFS/
+    cp ${path}/src/nvmain/FRFCFS.h ${path}/shared/nvmain/MemControl/FRFCFS/
+    cp ${path}/src/nvmain/FRFCFS.cpp ${path}/shared/nvmain/MemControl/FRFCFS/
+    cp ${path}/src/nvmain/FRFCFS-WQF.h ${path}/shared/nvmain/MemControl/FRFCFS-WQF/
+    cp ${path}/src/nvmain/FRFCFS-WQF.cpp ${path}/shared/nvmain/MemControl/FRFCFS-WQF/
+    cp ${path}/src/nvmain/nvmain.h ${path}/shared/nvmain/NVM/
+    cp ${path}/src/nvmain/nvmain.cpp ${path}/shared/nvmain/NVM/
+    cp ${path}/src/nvmain/MemoryController.h ${path}/shared/nvmain/src/
+    cp ${path}/src/nvmain/MemoryController.cpp ${path}/shared/nvmain/src/
+    cp ${path}/src/nvmain/traceMain.cpp ${path}/shared/nvmain/traceSim/
+    cp ${path}/src/nvmain/CoinMigrator.cpp ${path}/shared/nvmain/Utils/CoinMigrator/
+    cp ${path}/src/nvmain/SConscript ${path}/shared/nvmain/
+    cp ${path}/src/nvmain/2D_DRAM_example.config ${path}/shared/nvmain/Config/
+    cp ${path}/src/nvmain/3D_DRAM_example.config ${path}/shared/nvmain/Config/
+    cp ${path}/src/nvmain/PCM_MLC_example.config ${path}/shared/nvmain/Config/
+    cp ${path}/src/nvmain/RRAM_ISSCC_2012_4GB.config ${path}/shared/nvmain/Config/
+    cp ${path}/src/nvmain/STTRAM_Everspin_4GB.config ${path}/shared/nvmain/Config/
+    cp ${path}/src/nvmain/tracefile.nvt ${path}/shared/nvmsim/
 
-    if test -f "${path}/shared/nvmsim/sniper-ready"; then
-        rm -f ${path}/shared/nvmsim/sniper-ready
-    fi
-
-    IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"
-    instances=${#config_files[@]}
-    command="docker-compose up -d --scale sniper=$instances --scale nvmain=$instances"
-    message="command: ${command}"
-    echo "${message_info}${message_action} ${message}"
-    eval $command
+    log_done "Copying source files"
+  fi
 }
 
-function stop_services
-{
-    if [ ${SUBCOMMANDS} ]; then
-        if [ ${SUBCOMMANDS[0]} == all ]; then
-            command="docker-compose down"
-        else 
-            command="docker-compose stop ${SUBCOMMANDS}"
-        fi
-    else 
-        command="docker-compose down"
-    fi
-    
-    message_action="[RUNCMD]"
-    message="${command}"
-    echo "${message_info}${message_action} ${message}"
-    eval $command
+update_gid_in_dot_env() {
+  text_to_find="GROUP_ID"
+  text_to_replace="GROUP_ID="$(id -g)
+  file=$path'/.env'
+  if grep -q "$text_to_find" $path'/.env'; then
+    line_number=$(cat -n $path/.env | grep "$text_to_find")
+    line_number=$(echo $line_number | cut -d ' ' -f1 | tr -d ' ')
+    sed -i $line_number's/.*/'$text_to_replace'/' $file
+    log_info "$text_to_replace"
+  else
+    echo $text_to_replace >> $path'/.env'
+    log_info "$text_to_replace"
+  fi
 }
 
-function _main
-{
-    set_paths
-    set_messages
-    get_environment_values
-    get_scripts
+update_uid_in_dot_env() {
+  text_to_find="USER_ID"
+  text_to_replace="USER_ID="$(id -u)
+  file=$path'/.env'
+  if grep -q "$text_to_find" $path'/.env'; then
+    line_number=$(cat -n $path/.env | grep "$text_to_find")
+    line_number=$(echo $line_number | cut -d ' ' -f1 | tr -d ' ')
+    sed -i $line_number's/.*/'$text_to_replace'/' $file
+    log_info "$text_to_replace"
+  else
+    echo $text_to_replace >> $path'/.env'
+    log_info "$text_to_replace"
+  fi
+}
 
-    case $COMMAND in
-        build-images)
-            docker-compose down
-            build_images
-            ;;
-        help)
-            _help
-            ;;
-        logs)
-            show_logs
-            ;;
-        restart)
-            restart_services
-            ;;
-        run)
-            docker-compose down
-            start_services
-            show_logs
-            ;;
-        stop)
-            docker-compose down
-            ;;
-        *)
-            message_action="[START]"
-            message="Argument \"${nvmsim_script_action}\" not accepted. Usage: nvmsim.sh [run, stop, build-images, build-envs]"
-            echo -e "${message_erro}${message_action} ${message}"
-            exit 0
-            ;;
-    esac
+get_environment_values() {
+  sed -i 's/\r$//' ${path}/.env
+  source ${path}/.env
+}
+
+remove_gem5_dependency() {
+  sed -i -e 's/from gem5_scons import Transform/#from gem5_scons import Transform/g' ${path}/shared/nvmain/SConscript
+}
+
+restart_services() {
+  command="docker-compose restart -t 1 $1 $2 $3"
+  run_command "$command"
+}
+
+show_logs() {
+  command="docker-compose logs -f $1 $2 $3"
+  run_command "$command"
+}
+
+start_services() {
+  # copy_third_source_files
+  remove_gem5_dependency
+  copy_source_files
+  
+  rm -rf ${path}/shared/nvmsim/logs/
+  rm ${path}/shared/nvmsim/tracefile*.*
+  
+  if test -f "${path}/shared/nvmsim/nvmain-ready"; then
+    rm -f ${path}/shared/nvmsim/nvmain-ready
+  fi
+
+  if test -f "${path}/shared/nvmsim/sniper-ready"; then
+    rm -f ${path}/shared/nvmsim/sniper-ready
+  fi
+
+  IFS=', ' read -r -a config_files <<< "${NVMAIN_CONFIG_FILES}"
+  instances=${#config_files[@]}
+  command="docker-compose up -d $1 $2 $3 --scale sniper=$instances --scale nvmain=$instances"
+  run_command "$command"
+}
+
+stop_services() {
+  log_info ""
+  command="docker-compose down $1 $2 $3"
+  run_command "$command"
+}
+
+_main() {
+  update_gid_in_dot_env
+  update_uid_in_dot_env
+  get_environment_values
+
+  # build, start, restart, stop... até 3 serviços (sniper, nvmain, speccpu)
+  case ${SCRIPT_ARGS[0]} in
+    build-images)
+      stop_services "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      build_images "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      ;;
+    help)
+      _help
+      ;;
+    logs)
+      show_logs "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      ;;
+    restart)
+      restart_services "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      show_logs "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      ;;
+    start)
+      stop_services "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      start_services "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      show_logs "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      ;;
+    stop)
+      stop_services "${SCRIPT_ARGS[1]}" "${SCRIPT_ARGS[2]}" "${SCRIPT_ARGS[3]}"
+      ;;
+    *)
+      log_errr "The command \"${SCRIPT_ARGS}\" is invalid. Please, use ${BLUE}${0} help${CLEAR} to get more information"
+      exit 0
+      ;;
+  esac
 }
  
 _main

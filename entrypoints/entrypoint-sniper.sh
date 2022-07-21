@@ -4,19 +4,11 @@ ENABLE_SNIPER=${ENABLE_SNIPER:-1}
 SNIPER_TARGET_ARCH=${SNIPER_TARGET_ARCH:-intel64}
 SNIPER_MEMORY_TYPE=${SNIPER_MEMORY_TYPE:-RAM}
 NVMSIM_NVM_CONFIG_FILE=${NVMSIM_NVM_CONFIG_FILE-:2D_DRAM_example.config}
+INSTANCE_INDEX=1
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW="\033[0;33m"
-NOCOLOR='\033[0m'
+source /nvmsim/scripts/util.sh
 
-message_info="[NVMSIM][INFO ]"
-message_warn="[NVMSIM][${YELLOW}WARN${NOCOLOR} ]"
-message_erro="[NVMSIM][${RED}ERROR${NOCOLOR}]"
-message_done="[NVMSIM][${GREEN}DONE${NOCOLOR} ]"
-
-function get_container_number
-{
+get_container_number() {
   # from: https://stackoverflow.com/questions/60480257/how-to-simply-scale-a-docker-compose-service-and-pass-the-index-and-count-to-eac
 
   # get the container IP
@@ -32,35 +24,66 @@ function get_container_number
 
   # extract the replica number from the same PTR entry
   INSTANCE_INDEX=`dig -x $IP +short | sed 's/.*_\([0-9]*\)\..*/\1/'`
+  log_debg "I am instance $INSTANCE_INDEX"
 }
 
-function set_timezone
-{
-    message_action="[SETTZ]"
-    message="Setting timezone... "
-    echo -n "${message_info}${message_action} ${message}"
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
-    echo "ok (${TZ})"
+set_timezone() {
+  command="ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone"
+  run_command "$command"
+  log_info "timezone: $TZ"
 }
 
-function check_sniper_requirements
-{
+check_sniper_requirements() {
   if [ $ENABLE_SNIPER != 1 ]; then
-    message="Sniper Docker entrypoint disabled."
-    echo -e "${message_warn}${message_action} ${message}"
+    log_warn "Sniper Docker entrypoint disabled."
     tail -f /dev/null
   fi
 }
 
-function run_sniper
-{
+run_sniper() {
   cd /opt/sniper || exit 0
-  make -j $(nproc)
-  /opt/sniper/run-sniper -d /mnt/nvmsim/logs -- /opt/sniper/nvmsim
+
+  cd /opt/sniper || exit 0
+
+  get_container_number
+    
+  # TODO: read from environment value
+  program_name="test_mmap"
+
+  if [ $COUNT == 0 ] || [ $INSTANCE_INDEX == 1 ]; then
+    make -j $(nproc)
+    chmod -R 777 /opt/sniper
+    command="make -j $(nproc)"
+    run_command "$command"
+    touch /mnt/nvmsim/sniper-ready
+    
+    command="gcc /mnt/nvmsim/src/cache/${program_name}.c -g -O0 -o /opt/sniper/${program_name}"
+    run_command "$command"
+  fi
+
+  while [ ! -f /mnt/nvmsim/sniper-ready ]; do 
+    log_info "Sniper main container is busy, wait 10s."
+    sleep 10s
+  done
+
+  if [ $SNIPER_MEMORY_TYPE == NVM ]; then
+    IFS=', ' read -r -a nvmain_config_files <<< "${NVMAIN_CONFIG_FILES}"
+    if [ $COUNT == 0 ]; then
+      array_index=0
+      command="export NVMSIM_TRACEFILE_PATH=/mnt/nvmsim/tracefile-instance-1"
+    else
+      array_index=$(expr $INSTANCE_INDEX - 1)
+      command="export NVMSIM_TRACEFILE_PATH=/mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX}"
+    fi
+    nvmain_config_file=${nvmain_config_files[$array_index]}
+    run_command "$command"
+  fi
+
+  command="/opt/sniper/run-sniper -d /mnt/nvmsim/logs -c /opt/sniper/config/nvmsim-nvm.cfg -- /opt/sniper/${program_name} 1 0 /tmp/pagefile"
+  run_command "$command"
 }
 
-function run_sniper_with_speccpu_commands
-{
+run_sniper_with_speccpu_commands() {
   cd /opt/sniper || exit 0
 
   get_container_number
@@ -71,8 +94,7 @@ function run_sniper_with_speccpu_commands
   fi
 
   while [ ! -f /mnt/nvmsim/sniper-ready ]; do 
-    message="Sniper main container is busy, wait 10s."
-    echo "${message_info}${message_action} ${message}"
+    log_info "Sniper main container is busy, wait 10s."
     sleep 10s
   done
   
@@ -110,9 +132,7 @@ function run_sniper_with_speccpu_commands
     400.perlbench
   )
 
-  message_action="[GCMDS]"
-  message="Getting speccpu commands."
-  echo "${message_info}${message_action} ${message}"
+  log_info "Getting speccpu commands."
   for benchmark in "${benchmarks[@]}"; do
 
     benchmark_binary=$(cut -d "." -f2 <<< "${benchmark}")
@@ -125,14 +145,12 @@ function run_sniper_with_speccpu_commands
 
     file_to_check="/mnt/nvmsim/speccpu/${benchmark}/speccmds.cmd"
     if [ -f "${file_to_check}" ]; then
-      message="${benchmark}"
-      echo -e "${message_done}${message_action} ${message}"
+      log_done "${benchmark}"
       count=1
       cat ${file_to_check} | grep "${benchmark_binary}" | while read line; do
         benchmark_command="/mnt/nvmsim/speccpu/${benchmark}/${benchmark_binary}"
         benchmark_command="$benchmark_command"$(echo $line | awk -F ${benchmark_binary} '{print $2}')
         cd /mnt/nvmsim/speccpu/${benchmark} || exit 0
-        message_action="[BMARK]"
 
         current_date_time="`date +%Y-%m-%d-%Hh%Mm%Ss`"
 
@@ -142,61 +160,49 @@ function run_sniper_with_speccpu_commands
           array_index=$(expr $INSTANCE_INDEX - 1)
           nvmain_config_file=${nvmain_config_files[$array_index]}
           command="export NVMSIM_TRACEFILE_PATH=/mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX}"
-          message="command: $command"
-          echo "${message_info}${message_action} ${message}"
-          eval $command
+          run_command "$command"
 
           # put sniper on scale mode
           if [ $nvmain_config_file != SNIPER ]; then
             command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-nvm.cfg -- ${benchmark_command}"
-            message="Benchmark ${benchmark} (${count}) started. command: ${command}"
+            log_info "Benchmark ${benchmark} (${count}) started. command: ${command}"
           else 
             command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/instance-${INSTANCE_INDEX}-${nvmain_config_file}-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
-            message="Benchmark ${benchmark} (${count}) started. command: ${command}"  
+            log_info "Benchmark ${benchmark} (${count}) started. command: ${command}"  
           fi
 
-          echo "${message_info}${message_action} ${message}"
-          eval $command
+          run_command "$command"
         elif [ $SNIPER_MEMORY_TYPE == RAM ]; then
           command="/opt/sniper/run-sniper -d /mnt/nvmsim/simulations/${benchmark}/sniper-DRAM-test-${count}-${current_date_time} -c /opt/sniper/config/nvmsim-ram.cfg -- ${benchmark_command}"
-          message="Benchmark ${benchmark} (${count}) started. command: ${command}"
-          echo "${message_info}${message_action} ${message}"
-          eval $command
+          log_info "Benchmark ${benchmark} (${count}) started. command: ${command}"
+          run_command "$command"
         else
-          message="Memory \"$SNIPER_MEMORY_TYPE\"not accepted. Usage: [NVM, RAM]"
-          echo -e "${message_erro}${message_action} ${message}"
+          log_errr "Memory \"$SNIPER_MEMORY_TYPE\"not accepted. Usage: [NVM, RAM]"
           exit 0
         fi
-        message="Benchmark ${benchmark} (${count}) finished."
-        echo -e "${message_done}${message_action} ${message}"
+        log_done "Benchmark ${benchmark} (${count}) finished."
 
         count=$((count + 1))
       done
     else
-      message="${file_to_check} not found."
-      echo -e "${message_erro}${message_action} ${message}"
+      log_errr "${file_to_check} not found."
     fi
   done
-  message_action="[GCMDS]"
-  message="Getting speccpu commands."
-  echo "${message_info}${message_action} ${message}"
+  log_info "Getting speccpu commands."
 }
 
-
-function run
-{
-  message_action="[RUNEP]"
-  message="Sniper Docker entrypoint started."
-  echo "${message_info}${message_action} ${message}"
+run() {
+  log_info "Sniper Docker entrypoint started"
+  chmod -R 777 /opt/sniper
   
   check_sniper_requirements
   set_timezone
-  # run_sniper
-  run_sniper_with_speccpu_commands
+  run_sniper
+  # run_sniper_with_speccpu_commands
   
-  message_action="[RUNEP]"
-  message="Sniper Docker entrypoint finished."
-  echo "${message_info}${message_action} ${message}"
+  chmod -R 777 /opt/sniper
+  log_info "Sniper Docker entrypoint finished"
+  tail -f /dev/null
 }
 
 run

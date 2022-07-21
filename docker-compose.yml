@@ -13,8 +13,10 @@ services:
       NVMAIN_CONFIG_FILES: ${NVMAIN_CONFIG_FILES}
       TZ: "America/Sao_Paulo"
     privileged: true
+    user: "${USER_ID}:${GROUP_ID}"
     volumes:
       - ./shared/sniper:/opt/sniper
+      - ./scripts/:/nvmsim/scripts
       - ./shared/pinplay:/opt/pinplay
       - ./entrypoints/entrypoint-sniper.sh:/usr/local/bin/entrypoint.sh
       - ./shared/nvmsim:/mnt/nvmsim
@@ -33,10 +35,12 @@ services:
       NVMAIN_CONFIG_FILES: ${NVMAIN_CONFIG_FILES}
       TZ: "America/Sao_Paulo"
     privileged: true
+    user: "${USER_ID}:${GROUP_ID}"
     volumes:
+      - ./shared/nvmsim/:/mnt/nvmsim/
+      - ./scripts/:/nvmsim/scripts
       - ./shared/nvmain:/opt/nvmain
       - ./entrypoints/entrypoint-nvmain.sh:/usr/local/bin/entrypoint.sh
-      - ./shared/nvmsim/:/mnt/nvmsim/
     depends_on:
       - sniper
     networks:
@@ -54,6 +58,7 @@ services:
       ENABLE_SPECCPU: ${ENABLE_SPECCPU}
     privileged: true
     volumes:
+      - ./scripts/:/nvmsim/scripts
       - ./entrypoints/entrypoint-speccpu.sh:/usr/local/bin/entrypoint.sh
       - ${SPECCPU_PATH}:/mnt/dvd
       - ./shared/speccpu:/mnt/speccpu

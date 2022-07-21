@@ -3,18 +3,9 @@
 ENABLE_NVMAIN=${ENABLE_NVMAIN:-1}
 INSTANCE_INDEX=1
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW="\033[0;33m"
-NOCOLOR='\033[0m'
+source /nvmsim/scripts/util.sh
 
-message_info="[NVMSIM][INFO ]"
-message_warn="[NVMSIM][${YELLOW}WARN${NOCOLOR} ]"
-message_erro="[NVMSIM][${RED}ERROR${NOCOLOR}]"
-message_done="[NVMSIM][${GREEN}DONE${NOCOLOR} ]"
-
-function get_container_number
-{
+get_container_number() {
   # from: https://stackoverflow.com/questions/60480257/how-to-simply-scale-a-docker-compose-service-and-pass-the-index-and-count-to-eac
 
   # get the container IP
@@ -30,29 +21,35 @@ function get_container_number
 
   # extract the replica number from the same PTR entry
   INSTANCE_INDEX=`dig -x $IP +short | sed 's/.*_\([0-9]*\)\..*/\1/'`
+  log_debg "I am instance $INSTANCE_INDEX"
 }
 
-function run
-{
-  message_action="[RUNEP]"
-  message="NVMain Docker entrypoint started."
-  echo "${message_info}${message_action} ${message}"
+run() {
+  log_info "NVMain Docker entrypoint started."
   
   if [ $ENABLE_NVMAIN == 1 ]; then
     cd /opt/nvmain || exit 0
     
     get_container_number
     
-    if [ $INSTANCE_INDEX == 1 ]; then
-      scons --build-type=fast
-      scons --build-type=prof
-      scons --build-type=debug
+    if [ $COUNT == 0 ] || [ $INSTANCE_INDEX == 1 ]; then
+      log_wait "Building artifacts"
+
+      command="scons --build-type=fast"
+      run_command "$command"
+      
+      command="scons --build-type=prof"
+      run_command "$command"
+      
+      command="scons --build-type=debug"
+      run_command "$command"
+      
       touch /mnt/nvmsim/nvmain-ready
+      log_done "Building artifacts"
     fi
 
     while [ ! -f /mnt/nvmsim/nvmain-ready ]; do 
-      message="NVMain main container is busy, wait 10s."
-      echo "${message_info}${message_action} ${message}"
+      log_wait "NVMain main container is busy, wait 10s." 
       sleep 10s
     done
 
@@ -61,16 +58,12 @@ function run
     nvmain_config_file=${nvmain_config_files[$array_index]}
 
     command="./nvmain.debug Config/${nvmain_config_file} /mnt/nvmsim/tracefile-instance-${INSTANCE_INDEX} 0 TraceReader=SniperTrace"
-    message="command: ${command}"
-    echo "${message_info}${message_action} ${message}"
-    eval $command
+    run_command "$command"
     
-    message="NVMain Docker entrypoint finished."
-    echo "${message_info}${message_action} ${message}"
+    log_info "NVMain Docker entrypoint finished." 
     tail -f /dev/null
   else
-    message="NVMain Docker entrypoint disabled."
-    echo -e "${message_warn}${message_action} ${message}"
+    log_info "NVMain Docker entrypoint disabled."
     tail -f /dev/null
   fi
 }

@@ -1,6 +1,6 @@
 # NVMSim
 
-Código fonte mais documentação da aplicação
+NVMSim (NVM Simulator) é um simulador de arquitetura de hardware baseado na integração do Sniper com o NVMain.
 
 ## Configuração inicial
 
@@ -11,11 +11,10 @@ git clone git@gitlab.com:williamsenasilva/nvmsim.git
 ```
 
 - #### Download do Sniper
-Obtenha a versão mais recente do Sniper (7.3) no <a href="https://snipersim.org/w/Download" target="_blank">site oficial</a>
-Será disponibilizado um link para clonar, o repositório. Realize um git clone neste link.
+Obtenha a versão mais recente do Sniper (8.0) no <a href="https://github.com/snipersim/snipersim" target="_blank">github</a>.
 Exemplo
 ```bash
-git clone http://snipersim.org/download/a0123456789b0123456789/git/sniper.git
+git clone git@github.com:snipersim/snipersim.git
 ```
 
 - #### Download do PinPlay
@@ -40,7 +39,9 @@ Copie o arquivo .env-example para um arquivo .env dentro da raíz do projeto
 ```bash
 cp .env-example .env
 ```
-Edite as variáveis de ambiente dentro deste arquivo de acordo com o seu ambiente
+Edite as variáveis de ambiente dentro deste arquivo de acordo com o seu ambiente. Sendo:
+- NVMAIN_CONFIG_FILES: lista de 1 ou mais arquivos de configuração de memória do NVMain. Consulte as opções em [src\nvmain](src/nvmain).
+- SNIPER_MEMORY_TYPE: faz o Sniper trabalhar com a memória NVM configurada pelo NVMain.
 
 Exemplo:
 ```conf
@@ -52,6 +53,8 @@ ENABLE_SNIPER=1
 ENABLE_NVMAIN=1
 ENABLE_SPECCPU=0
 SNIPER_TARGET_ARCH=intel64
+SNIPER_MEMORY_TYPE=NVM
+NVMAIN_CONFIG_FILES=INTEL_OPTANE.config
 ```
 
 - #### Construir imagens Docker
